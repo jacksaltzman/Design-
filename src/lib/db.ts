@@ -102,6 +102,20 @@ export function getSwipeCount(): number {
   return swipes.length;
 }
 
+/** Restore swipe history from client-persisted state. */
+export function restoreSwipes(designIds: string[]): void {
+  swipes = designIds.map((id) => ({
+    designId: id,
+    liked: true, // direction doesn't matter for "already seen" tracking
+    timestamp: Date.now(),
+  }));
+}
+
+/** Get all swiped design IDs as an array. */
+export function getSwipedDesignIdList(): string[] {
+  return swipes.map((s) => s.designId);
+}
+
 // ── Taste State ──
 
 export function loadTasteState(): TasteVector {

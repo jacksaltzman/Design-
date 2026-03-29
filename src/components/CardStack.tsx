@@ -4,7 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import SwipeCard, { type SwipeCardHandle } from "./SwipeCard";
 import ProbeCard, { type ProbeCardHandle } from "./ProbeCard";
-import type { NextCardResponse } from "@/lib/types";
+import OnboardingGrid from "./OnboardingGrid";
+import DuelCard from "./DuelCard";
+import TasteInterstitial from "./TasteInterstitial";
+import { saveState, loadState } from "@/lib/client-state";
+import type { NextCardResponse, TasteVector } from "@/lib/types";
+
+// ── Card types ──
 
 interface RegularCard {
   type: "design";
@@ -22,22 +28,87 @@ interface ProbeCardData {
 
 type CardItem = RegularCard | ProbeCardData;
 
+// ── Flow states ──
+
+type FlowState =
+  | { type: "loading" }
+  | { type: "onboarding" }
+  | { type: "swiping" }
+  | { type: "duel" }
+  | { type: "interstitial" };
+
+// ── Cadence ──
+
+const DUEL_INTERVAL = 8;
+const INTERSTITIAL_INTERVAL = 15;
 const PROBE_INTERVAL = 10;
 const PROBE_MIN_SWIPES = 10;
+const DUEL_MIN_SWIPES = 10;
+const INTERSTITIAL_MIN_SWIPES = 12;
 
 interface CardStackProps {
   onSwipeCountChange: (count: number) => void;
 }
 
 export default function CardStack({ onSwipeCountChange }: CardStackProps) {
+  const [flow, setFlow] = useState<FlowState>({ type: "loading" });
   const [cards, setCards] = useState<CardItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [exhausted, setExhausted] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  const topCardRef = useRef<SwipeCardHandle | ProbeCardHandle | null>(null);
+  const swipeCountRef = useRef(0);
+  const swipesSinceDuel = useRef(0);
+  const swipesSinceInterstitial = useRef(0);
   const swipesSinceProbe = useRef(0);
   const probeCounter = useRef(0);
-  const swipeCountRef = useRef(0);
-  const topCardRef = useRef<SwipeCardHandle | ProbeCardHandle | null>(null);
+  const swipedIdsRef = useRef<string[]>([]);
+
+  // ── Persistence: save after every state change ──
+  const persist = useCallback((taste: TasteVector, swipedIds: string[]) => {
+    swipedIdsRef.current = swipedIds;
+    saveState(taste, swipedIds);
+  }, []);
+
+  // ── Initialize: check localStorage, restore or onboard ──
+  useEffect(() => {
+    async function init() {
+      const saved = loadState();
+
+      if (saved && saved.taste.swipeCount > 0) {
+        // Restore server state from localStorage
+        await fetch("/api/restore", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taste: saved.taste,
+            swipedIds: saved.swipedIds,
+          }),
+        });
+
+        swipeCountRef.current = saved.taste.swipeCount;
+        swipedIdsRef.current = saved.swipedIds;
+        onSwipeCountChange(saved.taste.swipeCount);
+
+        // Load initial swipe cards
+        const results = await Promise.all([
+          fetchCard(),
+          fetchCard(),
+          fetchCard(),
+        ]);
+        const valid = results.filter((c): c is RegularCard => c !== null);
+        setCards(valid);
+        setFlow({ type: "swiping" });
+      } else {
+        // Fresh user — show onboarding
+        setFlow({ type: "onboarding" });
+      }
+    }
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Fetchers ──
 
   const fetchCard = useCallback(async (): Promise<RegularCard | null> => {
     try {
@@ -86,22 +157,33 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
     return fetchCard();
   }, [fetchCard, fetchProbe]);
 
-  useEffect(() => {
-    async function init() {
-      const results = await Promise.all([
-        fetchCard(),
-        fetchCard(),
-        fetchCard(),
-      ]);
-      const valid = results.filter((c): c is RegularCard => c !== null);
-      setCards(valid);
-      setLoading(false);
-      if (valid.length > 0) {
-        onSwipeCountChange(valid[0].data.swipeCount);
-      }
+  // ── Decide what comes next after a swipe ──
+
+  const maybeChangeFlow = useCallback(() => {
+    // Interstitial check (higher priority — less frequent)
+    if (
+      swipeCountRef.current >= INTERSTITIAL_MIN_SWIPES &&
+      swipesSinceInterstitial.current >= INTERSTITIAL_INTERVAL
+    ) {
+      swipesSinceInterstitial.current = 0;
+      setFlow({ type: "interstitial" });
+      return true;
     }
-    init();
-  }, [fetchCard, onSwipeCountChange]);
+
+    // Duel check
+    if (
+      swipeCountRef.current >= DUEL_MIN_SWIPES &&
+      swipesSinceDuel.current >= DUEL_INTERVAL
+    ) {
+      swipesSinceDuel.current = 0;
+      setFlow({ type: "duel" });
+      return true;
+    }
+
+    return false;
+  }, []);
+
+  // ── Swipe handlers ──
 
   const handleDesignSwipe = useCallback(
     async (designId: string, liked: boolean) => {
@@ -115,18 +197,23 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
         const data = await res.json();
         swipeCountRef.current = data.swipeCount;
         onSwipeCountChange(data.swipeCount);
+        persist(data.taste, data.swipedIds);
       }
 
+      swipesSinceDuel.current += 1;
+      swipesSinceInterstitial.current += 1;
       swipesSinceProbe.current += 1;
+
       setCards((prev) => prev.filter((c) => c.id !== designId));
       setIsAnimating(false);
 
-      const newCard = await fetchNext();
-      if (newCard) {
-        setCards((prev) => [...prev, newCard]);
+      // Check if we should switch to duel or interstitial
+      if (!maybeChangeFlow()) {
+        const newCard = await fetchNext();
+        if (newCard) setCards((prev) => [...prev, newCard]);
       }
     },
-    [fetchNext, onSwipeCountChange]
+    [fetchNext, onSwipeCountChange, persist, maybeChangeFlow]
   );
 
   const handleProbeSwipe = useCallback(
@@ -154,20 +241,25 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
       }
 
       swipesSinceProbe.current = 0;
+      swipesSinceDuel.current += 1;
+      swipesSinceInterstitial.current += 1;
+
       setCards((prev) => prev.filter((c) => c.id !== probeId));
       setIsAnimating(false);
 
-      const newCard = await fetchNext();
-      if (newCard) {
-        setCards((prev) => [...prev, newCard]);
+      if (!maybeChangeFlow()) {
+        const newCard = await fetchNext();
+        if (newCard) setCards((prev) => [...prev, newCard]);
       }
     },
-    [cards, fetchNext, onSwipeCountChange]
+    [cards, fetchNext, onSwipeCountChange, maybeChangeFlow]
   );
+
+  // ── Button / keyboard swipe ──
 
   const handleButtonSwipe = useCallback(
     async (direction: "left" | "right") => {
-      if (isAnimating || cards.length === 0) return;
+      if (isAnimating || cards.length === 0 || flow.type !== "swiping") return;
       setIsAnimating(true);
 
       const ref = topCardRef.current;
@@ -182,26 +274,102 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
         }
       }
     },
-    [isAnimating, cards, handleDesignSwipe, handleProbeSwipe]
+    [isAnimating, cards, flow, handleDesignSwipe, handleProbeSwipe]
   );
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (cards.length === 0 || isAnimating) return;
+      if (flow.type !== "swiping" || cards.length === 0 || isAnimating) return;
       if (e.key === "ArrowLeft") handleButtonSwipe("left");
       else if (e.key === "ArrowRight") handleButtonSwipe("right");
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [cards, isAnimating, handleButtonSwipe]);
+  }, [flow, cards, isAnimating, handleButtonSwipe]);
 
-  if (loading) {
+  // ── Onboarding complete ──
+
+  const handleOnboardingComplete = useCallback(
+    async (taste: unknown, swipedIds: string[]) => {
+      const tv = taste as TasteVector;
+      swipeCountRef.current = tv.swipeCount;
+      onSwipeCountChange(tv.swipeCount);
+      persist(tv, swipedIds);
+
+      // Pre-fetch cards for swiping
+      const results = await Promise.all([
+        fetchCard(),
+        fetchCard(),
+        fetchCard(),
+      ]);
+      const valid = results.filter((c): c is RegularCard => c !== null);
+      setCards(valid);
+      setFlow({ type: "swiping" });
+    },
+    [fetchCard, onSwipeCountChange, persist]
+  );
+
+  // ── Duel complete ──
+
+  const handleDuelComplete = useCallback(
+    async (winnerId: string, loserId: string) => {
+      const res = await fetch("/api/swipe-duel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ winnerId, loserId }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        swipeCountRef.current = data.swipeCount;
+        onSwipeCountChange(data.swipeCount);
+        persist(data.taste, data.swipedIds);
+      }
+
+      // Replenish cards and return to swiping
+      const newCards = await Promise.all([fetchCard(), fetchCard()]);
+      const valid = newCards.filter((c): c is RegularCard => c !== null);
+      setCards((prev) => [...prev, ...valid]);
+      setFlow({ type: "swiping" });
+    },
+    [fetchCard, onSwipeCountChange, persist]
+  );
+
+  // ── Interstitial continue ──
+
+  const handleInterstitialContinue = useCallback(async () => {
+    // Replenish if needed
+    if (cards.length < 2) {
+      const newCards = await Promise.all([fetchCard(), fetchCard()]);
+      const valid = newCards.filter((c): c is RegularCard => c !== null);
+      setCards((prev) => [...prev, ...valid]);
+    }
+    setFlow({ type: "swiping" });
+  }, [cards, fetchCard]);
+
+  // ── Render ──
+
+  if (flow.type === "loading") {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="text-sm text-[var(--muted)]">Loading</div>
+        <span className="text-sm text-[var(--muted)]">Loading</span>
       </div>
     );
   }
+
+  if (flow.type === "onboarding") {
+    return <OnboardingGrid onComplete={handleOnboardingComplete} />;
+  }
+
+  if (flow.type === "duel") {
+    return <DuelCard onComplete={handleDuelComplete} />;
+  }
+
+  if (flow.type === "interstitial") {
+    return <TasteInterstitial onContinue={handleInterstitialContinue} />;
+  }
+
+  // flow.type === "swiping"
 
   if (exhausted && cards.length === 0) {
     return (
@@ -221,7 +389,11 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
           card.type === "probe" ? (
             <ProbeCard
               key={card.id}
-              ref={index === 0 ? (topCardRef as React.Ref<ProbeCardHandle>) : undefined}
+              ref={
+                index === 0
+                  ? (topCardRef as React.Ref<ProbeCardHandle>)
+                  : undefined
+              }
               probeId={card.id}
               html={card.html}
               onSwipe={handleProbeSwipe}
@@ -231,7 +403,11 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
           ) : (
             <SwipeCard
               key={card.id}
-              ref={index === 0 ? (topCardRef as React.Ref<SwipeCardHandle>) : undefined}
+              ref={
+                index === 0
+                  ? (topCardRef as React.Ref<SwipeCardHandle>)
+                  : undefined
+              }
               designId={card.id}
               imageUrl={card.data.design.imageUrl}
               onSwipe={handleDesignSwipe}
@@ -251,7 +427,15 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
             className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--foreground)] transition-all duration-150 hover:border-neutral-300 hover:shadow-sm active:scale-90 disabled:opacity-30"
             aria-label="Pass"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            >
               <line x1="12" y1="4" x2="4" y2="12" />
               <line x1="4" y1="4" x2="12" y2="12" />
             </svg>
@@ -262,7 +446,16 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
             className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--foreground)] transition-all duration-150 hover:border-neutral-300 hover:shadow-sm active:scale-90 disabled:opacity-30"
             aria-label="Like"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M13.9 3.1a3.5 3.5 0 0 0-4.95 0L8 4.05l-.95-.95a3.5 3.5 0 1 0-4.95 4.95l.95.95L8 13.95l4.95-4.95.95-.95a3.5 3.5 0 0 0 0-4.95z" />
             </svg>
           </button>

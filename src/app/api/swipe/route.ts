@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { loadTasteState, saveTasteState, recordSwipe } from "@/lib/db";
+import { loadTasteState, saveTasteState, recordSwipe, getSwipedDesignIdList } from "@/lib/db";
 import { getEmbedding } from "@/lib/embeddings";
 import { updateTaste } from "@/lib/taste-model";
 import type { SwipeRequest } from "@/lib/types";
@@ -22,15 +22,15 @@ export async function POST(request: Request) {
     );
   }
 
-  // Record the swipe
   recordSwipe(body.designId, body.liked);
 
-  // Update taste model
   const currentTaste = loadTasteState();
   const updatedTaste = updateTaste(currentTaste, embedding, body.liked);
   saveTasteState(updatedTaste);
 
   return NextResponse.json({
     swipeCount: updatedTaste.swipeCount,
+    taste: updatedTaste,
+    swipedIds: getSwipedDesignIdList(),
   });
 }
