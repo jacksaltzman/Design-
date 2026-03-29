@@ -22,21 +22,21 @@ export default function ProfilePage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="flex items-center justify-between px-6 py-4">
-        <h1 className="text-lg font-semibold tracking-tight">Your Design Taste</h1>
+      <header className="flex items-center justify-between px-6 py-5">
+        <h1 className="text-sm font-medium tracking-tight">Your Taste</h1>
         <Link
           href="/"
-          className="rounded-lg bg-neutral-800 px-4 py-2 text-sm font-medium text-neutral-300 transition hover:bg-neutral-700 hover:text-white"
+          className="text-xs text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
         >
-          Keep Swiping
+          Back
         </Link>
       </header>
 
       <main className="flex-1 px-6 pb-8">
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto max-w-xl">
           {loading ? (
-            <div className="py-20 text-center text-neutral-500">
-              Loading your taste profile...
+            <div className="py-20 text-center text-sm text-[var(--muted)]">
+              Loading
             </div>
           ) : profile ? (
             <TasteProfileComponent
@@ -46,8 +46,8 @@ export default function ProfilePage() {
               swipeCount={profile.swipeCount}
             />
           ) : (
-            <div className="py-20 text-center text-neutral-500">
-              Could not load taste profile.
+            <div className="py-20 text-center text-sm text-[var(--muted)]">
+              Could not load profile
             </div>
           )}
         </div>

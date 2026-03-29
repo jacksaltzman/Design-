@@ -6,14 +6,12 @@ import SwipeCard, { type SwipeCardHandle } from "./SwipeCard";
 import ProbeCard, { type ProbeCardHandle } from "./ProbeCard";
 import type { NextCardResponse } from "@/lib/types";
 
-/** A regular design card from the corpus. */
 interface RegularCard {
   type: "design";
   id: string;
   data: NextCardResponse;
 }
 
-/** A generated design probe from Claude. */
 interface ProbeCardData {
   type: "probe";
   id: string;
@@ -88,7 +86,6 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
     return fetchCard();
   }, [fetchCard, fetchProbe]);
 
-  // Load initial cards
   useEffect(() => {
     async function init() {
       const results = await Promise.all([
@@ -168,20 +165,16 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
     [cards, fetchNext, onSwipeCountChange]
   );
 
-  /** Button-triggered swipe — animates the card out before processing. */
   const handleButtonSwipe = useCallback(
     async (direction: "left" | "right") => {
       if (isAnimating || cards.length === 0) return;
       setIsAnimating(true);
 
-      const topCard = cards[0];
       const ref = topCardRef.current;
-
       if (ref) {
-        // Animate first, then the onSwipe callback fires from the card
         await ref.animateOut(direction);
       } else {
-        // Fallback if ref isn't set
+        const topCard = cards[0];
         if (topCard.type === "probe") {
           handleProbeSwipe(topCard.id, direction === "right");
         } else {
@@ -192,15 +185,11 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
     [isAnimating, cards, handleDesignSwipe, handleProbeSwipe]
   );
 
-  // Keyboard support
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (cards.length === 0 || isAnimating) return;
-      if (e.key === "ArrowLeft") {
-        handleButtonSwipe("left");
-      } else if (e.key === "ArrowRight") {
-        handleButtonSwipe("right");
-      }
+      if (e.key === "ArrowLeft") handleButtonSwipe("left");
+      else if (e.key === "ArrowRight") handleButtonSwipe("right");
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -209,19 +198,17 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="animate-pulse text-base text-neutral-500">
-          Loading designs...
-        </div>
+        <div className="text-sm text-[var(--muted)]">Loading</div>
       </div>
     );
   }
 
   if (exhausted && cards.length === 0) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-4">
-        <div className="text-2xl font-semibold">All done!</div>
-        <div className="text-neutral-400">
-          You&apos;ve seen all the designs. Check your taste profile.
+      <div className="flex h-full flex-col items-center justify-center gap-3">
+        <div className="text-sm font-medium">No more designs</div>
+        <div className="text-xs text-[var(--muted)]">
+          Check your taste profile
         </div>
       </div>
     );
@@ -255,28 +242,28 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
         )}
       </AnimatePresence>
 
-      {/* Action buttons */}
+      {/* Minimal action buttons */}
       {cards.length > 0 && (
-        <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-8">
+        <div className="absolute bottom-5 left-0 right-0 z-20 flex justify-center gap-12">
           <button
             onClick={() => handleButtonSwipe("left")}
             disabled={isAnimating}
-            className="group flex h-16 w-16 items-center justify-center rounded-full border border-red-500/30 bg-neutral-900/80 text-2xl text-red-400 shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-110 hover:border-red-500/60 hover:bg-red-500/15 hover:text-red-300 hover:shadow-red-500/20 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
-            aria-label="Dislike"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--foreground)] transition-all duration-150 hover:border-neutral-300 hover:shadow-sm active:scale-90 disabled:opacity-30"
+            aria-label="Pass"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="12" y1="4" x2="4" y2="12" />
+              <line x1="4" y1="4" x2="12" y2="12" />
             </svg>
           </button>
           <button
             onClick={() => handleButtonSwipe("right")}
             disabled={isAnimating}
-            className="group flex h-16 w-16 items-center justify-center rounded-full border border-green-500/30 bg-neutral-900/80 text-2xl text-green-400 shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-110 hover:border-green-500/60 hover:bg-green-500/15 hover:text-green-300 hover:shadow-green-500/20 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--foreground)] transition-all duration-150 hover:border-neutral-300 hover:shadow-sm active:scale-90 disabled:opacity-30"
             aria-label="Like"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13.9 3.1a3.5 3.5 0 0 0-4.95 0L8 4.05l-.95-.95a3.5 3.5 0 1 0-4.95 4.95l.95.95L8 13.95l4.95-4.95.95-.95a3.5 3.5 0 0 0 0-4.95z" />
             </svg>
           </button>
         </div>
