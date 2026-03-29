@@ -3,6 +3,10 @@ import { loadTasteState, saveTasteState } from "@/lib/db";
 import { loadTasteAxes } from "@/lib/embeddings";
 import { updateTaste } from "@/lib/taste-model";
 
+function getSessionId(request: Request): string {
+  return request.headers.get("X-Session-ID") ?? "anon";
+}
+
 /**
  * Handle swipe feedback on a generated design probe.
  *
@@ -12,6 +16,7 @@ import { updateTaste } from "@/lib/taste-model";
  * end), we nudge away from it.
  */
 export async function POST(request: Request) {
+  const sessionId = getSessionId(request);
   const body = await request.json();
   const { axis, variant, liked } = body as {
     axis: string;
@@ -44,13 +49,13 @@ export async function POST(request: Request) {
   const isHighEnd = variant === "B";
   const effectiveLiked = isHighEnd ? liked : !liked;
 
-  const currentTaste = loadTasteState();
+  const currentTaste = await loadTasteState(sessionId);
   const updatedTaste = updateTaste(
     currentTaste,
     tasteAxis.direction,
     effectiveLiked
   );
-  saveTasteState(updatedTaste);
+  saveTasteState(sessionId, updatedTaste);
 
   return NextResponse.json({
     swipeCount: updatedTaste.swipeCount,

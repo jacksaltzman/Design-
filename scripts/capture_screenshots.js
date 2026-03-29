@@ -68,7 +68,7 @@ function slugify(url) {
 
 async function captureScreenshot(browser, entry, viewport, suffix) {
   const id = slugify(entry.url) + (suffix ? `-${suffix}` : "");
-  const outputPath = path.join(OUTPUT_DIR, `${id}.webp`);
+  const outputPath = path.join(OUTPUT_DIR, `${id}.jpeg`);
 
   // Skip if already captured
   if (fs.existsSync(outputPath)) {
@@ -108,7 +108,7 @@ async function captureScreenshot(browser, entry, viewport, suffix) {
     // Capture viewport screenshot (above the fold)
     await page.screenshot({
       path: outputPath,
-      type: "webp",
+      type: "jpeg",
       quality: 90,
       clip: {
         x: 0,
@@ -173,7 +173,7 @@ async function main() {
       region: r.entry.region,
       format: r.entry.format,
       tags: r.entry.tags,
-      filename: `${r.id}.webp`,
+      filename: `${r.id}.jpeg`,
     }));
 
   const metadataPath = path.join(__dirname, "..", "data", "design_metadata.json");

@@ -7,7 +7,7 @@ import ProbeCard, { type ProbeCardHandle } from "./ProbeCard";
 import OnboardingGrid from "./OnboardingGrid";
 import DuelCard from "./DuelCard";
 import TasteInterstitial from "./TasteInterstitial";
-import { saveState, loadState } from "@/lib/client-state";
+import { saveState, loadState, getSessionId } from "@/lib/client-state";
 import type { NextCardResponse, TasteVector } from "@/lib/types";
 
 // ── Card types ──
@@ -64,6 +64,12 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
   const probeCounter = useRef(0);
   const swipedIdsRef = useRef<string[]>([]);
 
+  // ── Session ID header helper ──
+  const sessionHeaders = useCallback((): HeadersInit => {
+    const sid = getSessionId();
+    return sid ? { "X-Session-ID": sid } : {};
+  }, []);
+
   // ── Persistence: save after every state change ──
   const persist = useCallback((taste: TasteVector, swipedIds: string[]) => {
     swipedIdsRef.current = swipedIds;
@@ -79,7 +85,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
         // Restore server state from localStorage
         await fetch("/api/restore", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...sessionHeaders() },
           body: JSON.stringify({
             taste: saved.taste,
             swipedIds: saved.swipedIds,
@@ -112,7 +118,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
 
   const fetchCard = useCallback(async (): Promise<RegularCard | null> => {
     try {
-      const res = await fetch("/api/next-card");
+      const res = await fetch("/api/next-card", { headers: sessionHeaders() });
       if (!res.ok) {
         if (res.status === 404) setExhausted(true);
         return null;
@@ -122,11 +128,11 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
     } catch {
       return null;
     }
-  }, []);
+  }, [sessionHeaders]);
 
   const fetchProbe = useCallback(async (): Promise<ProbeCardData | null> => {
     try {
-      const res = await fetch("/api/generate-probe");
+      const res = await fetch("/api/generate-probe", { headers: sessionHeaders() });
       if (!res.ok) return null;
       const data = await res.json();
       probeCounter.current += 1;
@@ -140,7 +146,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
     } catch {
       return null;
     }
-  }, []);
+  }, [sessionHeaders]);
 
   const fetchNext = useCallback(async (): Promise<CardItem | null> => {
     const shouldProbe =
@@ -189,7 +195,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
     async (designId: string, liked: boolean) => {
       const res = await fetch("/api/swipe", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...sessionHeaders() },
         body: JSON.stringify({ designId, liked }),
       });
 
@@ -213,7 +219,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
         if (newCard) setCards((prev) => [...prev, newCard]);
       }
     },
-    [fetchNext, onSwipeCountChange, persist, maybeChangeFlow]
+    [fetchNext, onSwipeCountChange, persist, maybeChangeFlow, sessionHeaders]
   );
 
   const handleProbeSwipe = useCallback(
@@ -225,7 +231,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
       if (probe) {
         const res = await fetch("/api/swipe-probe", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...sessionHeaders() },
           body: JSON.stringify({
             axis: probe.axis,
             variant: probe.variant,
@@ -252,7 +258,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
         if (newCard) setCards((prev) => [...prev, newCard]);
       }
     },
-    [cards, fetchNext, onSwipeCountChange, maybeChangeFlow]
+    [cards, fetchNext, onSwipeCountChange, maybeChangeFlow, sessionHeaders]
   );
 
   // ── Button / keyboard swipe ──
@@ -315,7 +321,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
     async (winnerId: string, loserId: string) => {
       const res = await fetch("/api/swipe-duel", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...sessionHeaders() },
         body: JSON.stringify({ winnerId, loserId }),
       });
 
@@ -332,7 +338,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
       setCards((prev) => [...prev, ...valid]);
       setFlow({ type: "swiping" });
     },
-    [fetchCard, onSwipeCountChange, persist]
+    [fetchCard, onSwipeCountChange, persist, sessionHeaders]
   );
 
   // ── Interstitial continue ──

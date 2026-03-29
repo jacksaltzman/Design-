@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import TasteProfileComponent from "@/components/TasteProfile";
 import type { TasteProfile } from "@/lib/types";
+import { getSessionId } from "@/lib/client-state";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<TasteProfile | null>(null);
@@ -11,7 +12,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/taste-profile");
+      const sid = getSessionId();
+      const headers: HeadersInit = sid ? { "X-Session-ID": sid } : {};
+      const res = await fetch("/api/taste-profile", { headers });
       if (res.ok) {
         setProfile(await res.json());
       }

@@ -6,13 +6,18 @@ import { tasteConfidence } from "@/lib/taste-model";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const taste = loadTasteState();
+function getSessionId(request: Request): string {
+  return request.headers.get("X-Session-ID") ?? "anon";
+}
+
+export async function GET(request: Request) {
+  const sessionId = getSessionId(request);
+  const taste = await loadTasteState(sessionId);
   const candidates = getAllCandidates();
-  const swiped = getSwipedDesignIds();
+  const swiped = getSwipedDesignIds(sessionId);
 
   // Get recent card embeddings for diversity constraint
-  const recentIds = getRecentSwipedIds(5);
+  const recentIds = getRecentSwipedIds(sessionId, 5);
   const recentEmbeddings = recentIds
     .map((id) => getEmbedding(id))
     .filter((e): e is number[] => e !== null);

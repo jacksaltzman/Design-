@@ -1,10 +1,23 @@
 import { NextResponse } from "next/server";
-import { loadTasteState, saveTasteState, recordSwipe, getSwipedDesignIdList } from "@/lib/db";
+import {
+  loadTasteState,
+  saveTasteState,
+  recordSwipe,
+  getSwipedDesignIdList,
+  getDesignCategory,
+  loadContextTasteState,
+  saveContextTasteState,
+} from "@/lib/db";
 import { getEmbedding } from "@/lib/embeddings";
 import { updateTaste } from "@/lib/taste-model";
 import type { SwipeRequest } from "@/lib/types";
 
+function getSessionId(request: Request): string {
+  return request.headers.get("X-Session-ID") ?? "anon";
+}
+
 export async function POST(request: Request) {
+  const sessionId = getSessionId(request);
   const body = (await request.json()) as SwipeRequest;
 
   if (!body.designId || typeof body.liked !== "boolean") {
@@ -22,15 +35,24 @@ export async function POST(request: Request) {
     );
   }
 
-  recordSwipe(body.designId, body.liked);
+  recordSwipe(sessionId, body.designId, body.liked, body.confidence);
 
-  const currentTaste = loadTasteState();
-  const updatedTaste = updateTaste(currentTaste, embedding, body.liked);
-  saveTasteState(updatedTaste);
+  // Update global taste vector
+  const currentTaste = await loadTasteState(sessionId);
+  const updatedTaste = updateTaste(currentTaste, embedding, body.liked, body.confidence);
+  saveTasteState(sessionId, updatedTaste);
+
+  // Update category-specific taste vector (if category is known)
+  const category = getDesignCategory(body.designId);
+  if (category) {
+    const contextTaste = await loadContextTasteState(sessionId, category);
+    const updatedContext = updateTaste(contextTaste, embedding, body.liked, body.confidence);
+    saveContextTasteState(sessionId, category, updatedContext);
+  }
 
   return NextResponse.json({
     swipeCount: updatedTaste.swipeCount,
     taste: updatedTaste,
-    swipedIds: getSwipedDesignIdList(),
+    swipedIds: getSwipedDesignIdList(sessionId),
   });
 }

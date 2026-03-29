@@ -7,7 +7,11 @@ import { generateSingleProbe } from "@/lib/design-generator";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30; // Allow up to 30s for Claude generation
 
-export async function GET() {
+function getSessionId(request: Request): string {
+  return request.headers.get("X-Session-ID") ?? "anon";
+}
+
+export async function GET(request: Request) {
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
       { error: "ANTHROPIC_API_KEY not set" },
@@ -15,7 +19,8 @@ export async function GET() {
     );
   }
 
-  const taste = loadTasteState();
+  const sessionId = getSessionId(request);
+  const taste = await loadTasteState(sessionId);
 
   // Only generate probes after enough swipes to have a taste signal
   if (taste.swipeCount < 10) {

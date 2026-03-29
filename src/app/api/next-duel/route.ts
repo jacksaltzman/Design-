@@ -5,15 +5,20 @@ import { predictLike } from "@/lib/taste-model";
 
 export const dynamic = "force-dynamic";
 
+function getSessionId(request: Request): string {
+  return request.headers.get("X-Session-ID") ?? "anon";
+}
+
 /**
  * Pick two designs with similar predicted scores for a duel.
  * The most informative duel is between two designs the model
  * rates similarly — that's where it's least sure about ranking.
  */
-export async function GET() {
-  const taste = loadTasteState();
+export async function GET(request: Request) {
+  const sessionId = getSessionId(request);
+  const taste = await loadTasteState(sessionId);
   const candidates = getAllCandidates();
-  const swiped = getSwipedDesignIds();
+  const swiped = getSwipedDesignIds(sessionId);
 
   const available = candidates.filter((c) => !swiped.has(c.id));
 

@@ -146,11 +146,15 @@ def random_direction(seed: int) -> np.ndarray:
 
 def main():
     if HAS_CLIP:
-        print("Loading CLIP ViT-L/14 text encoder...")
-        all_texts = []
-        for _, _, low_prompt, _, high_prompt in TASTE_AXES:
-            all_texts.extend([low_prompt, high_prompt])
-        text_embeddings = encode_texts(all_texts)
+        try:
+            print("Loading CLIP ViT-L/14 text encoder...")
+            all_texts = []
+            for _, _, low_prompt, _, high_prompt in TASTE_AXES:
+                all_texts.extend([low_prompt, high_prompt])
+            text_embeddings = encode_texts(all_texts)
+        except Exception as e:
+            print(f"WARNING: CLIP text encoder failed to load ({e}). Falling back to random axis vectors.")
+            text_embeddings = None
     else:
         text_embeddings = None
 

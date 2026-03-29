@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
+import { getSessionId } from "@/lib/client-state";
 
 interface Design {
   id: string;
@@ -21,7 +22,9 @@ export default function DuelCard({ onComplete }: DuelCardProps) {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/next-duel");
+      const sid = getSessionId();
+      const headers: HeadersInit = sid ? { "X-Session-ID": sid } : {};
+      const res = await fetch("/api/next-duel", { headers });
       if (res.ok) {
         const data = await res.json();
         setDesigns(data.designs);

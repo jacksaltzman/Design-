@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
+import { getSessionId } from "@/lib/client-state";
 
 interface Design {
   id: string;
@@ -21,7 +22,9 @@ export default function OnboardingGrid({ onComplete }: OnboardingGridProps) {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/onboarding");
+      const sid = getSessionId();
+      const headers: HeadersInit = sid ? { "X-Session-ID": sid } : {};
+      const res = await fetch("/api/onboarding", { headers });
       if (res.ok) {
         const data = await res.json();
         setDesigns(data.designs);
@@ -47,9 +50,11 @@ export default function OnboardingGrid({ onComplete }: OnboardingGridProps) {
     if (selected.size === 0 || submitting) return;
     setSubmitting(true);
 
+    const sid = getSessionId();
+    const sessionHeader: HeadersInit = sid ? { "X-Session-ID": sid } : {};
     const res = await fetch("/api/onboarding-swipe", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...sessionHeader },
       body: JSON.stringify({
         selectedIds: Array.from(selected),
         allIds: designs.map((d) => d.id),

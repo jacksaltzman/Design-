@@ -3,11 +3,16 @@ import { loadTasteState, saveTasteState, recordSwipe, getSwipedDesignIdList } fr
 import { getEmbedding } from "@/lib/embeddings";
 import { updateTaste } from "@/lib/taste-model";
 
+function getSessionId(request: Request): string {
+  return request.headers.get("X-Session-ID") ?? "anon";
+}
+
 /**
  * Process batch onboarding selections.
  * Selected designs get "liked", unselected get a weaker "dislike" signal.
  */
 export async function POST(request: Request) {
+  const sessionId = getSessionId(request);
   const body = await request.json();
   const { selectedIds, allIds } = body as {
     selectedIds: string[];
@@ -21,7 +26,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let taste = loadTasteState();
+  let taste = await loadTasteState(sessionId);
   const selectedSet = new Set(selectedIds);
 
   for (const id of allIds) {
@@ -29,15 +34,15 @@ export async function POST(request: Request) {
     if (!embedding) continue;
 
     const liked = selectedSet.has(id);
-    recordSwipe(id, liked);
+    recordSwipe(sessionId, id, liked);
     taste = updateTaste(taste, embedding, liked);
   }
 
-  saveTasteState(taste);
+  saveTasteState(sessionId, taste);
 
   return NextResponse.json({
     swipeCount: taste.swipeCount,
     taste,
-    swipedIds: getSwipedDesignIdList(),
+    swipedIds: getSwipedDesignIdList(sessionId),
   });
 }

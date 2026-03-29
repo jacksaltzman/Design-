@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import type { TasteProfile } from "@/lib/types";
+import { getSessionId } from "@/lib/client-state";
 
 interface TasteInterstitialProps {
   onContinue: () => void;
@@ -13,7 +14,9 @@ export default function TasteInterstitial({ onContinue }: TasteInterstitialProps
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/taste-profile");
+      const sid = getSessionId();
+      const headers: HeadersInit = sid ? { "X-Session-ID": sid } : {};
+      const res = await fetch("/api/taste-profile", { headers });
       if (res.ok) {
         setProfile(await res.json());
       }

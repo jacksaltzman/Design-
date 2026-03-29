@@ -74,10 +74,14 @@ def main():
     print(f"Found {len(image_files)} images in {DESIGNS_DIR}")
 
     if HAS_CLIP:
-        print("Loading CLIP ViT-L/14...")
-        model, preprocess, device = load_clip_model()
-        print(f"Using device: {device}")
-        embed_fn = lambda p: embed_image(model, preprocess, device, p)
+        try:
+            print("Loading CLIP ViT-L/14...")
+            model, preprocess, device = load_clip_model()
+            print(f"Using device: {device}")
+            embed_fn = lambda p: embed_image(model, preprocess, device, p)
+        except Exception as e:
+            print(f"WARNING: CLIP model failed to load ({e}). Falling back to deterministic random embeddings.")
+            embed_fn = embed_random
     else:
         embed_fn = embed_random
 

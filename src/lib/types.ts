@@ -30,11 +30,20 @@ export interface TasteAxis {
   score?: number;
 }
 
+export interface TasteCluster {
+  centroid: number[];
+  size: number;
+  profile: TasteProfile;
+}
+
 export interface TasteProfile {
   axes: TasteAxisScore[];
   description: string;
   confidence: number;
   swipeCount: number;
+  clusters?: TasteCluster[];
+  /** Per-category taste profiles (e.g. "editorial", "brutalist", "dashboard"). */
+  contextProfiles?: Record<string, TasteProfile>;
 }
 
 export interface TasteAxisScore {
@@ -42,6 +51,7 @@ export interface TasteAxisScore {
   lowLabel: string;
   highLabel: string;
   score: number; // [-1, 1]
+  confidence: number; // [0, 1] — how well this axis discriminates in the user's swipes
 }
 
 // ── API types ──
@@ -55,6 +65,8 @@ export interface NextCardResponse {
 export interface SwipeRequest {
   designId: string;
   liked: boolean;
+  /** Swipe decisiveness — 0 (hesitant) to 1 (instant). Amplifies negative signal. */
+  confidence?: number;
 }
 
 export interface SwipeResponse {
