@@ -6,6 +6,7 @@ import Link from "next/link";
 import TasteProfileComponent from "@/components/TasteProfile";
 import type { TasteProfile, TasteAxisScore } from "@/lib/types";
 import { getSessionId, getSessionSnapshot, saveSessionSnapshot, loadState } from "@/lib/client-state";
+import { findClosestPersona } from "@/lib/taste-personas";
 
 function buildShareText(profile: TasteProfile): string {
   const top3 = [...profile.axes]
@@ -108,6 +109,7 @@ export default function ProfilePage() {
                 swipeCount={profile.swipeCount}
                 onShare={handleShare}
                 drift={drift}
+                persona={findClosestPersona(profile.axes, 20, profile.swipeCount)}
               />
               {likedIds.length > 0 && (
                 <div className="mt-10 space-y-4">

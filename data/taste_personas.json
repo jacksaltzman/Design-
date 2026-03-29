@@ -1,0 +1,114 @@
+[
+  {
+    "id": "muji-rams",
+    "name": "Muji / Dieter Rams",
+    "description": "Uncompromising reduction. Function expressed through absence.",
+    "axisScores": {
+      "Visual Complexity": -0.9,
+      "Layout Density": -0.7,
+      "Color Saturation": -0.8,
+      "Typography Style": -0.3,
+      "Formality": 0.4,
+      "Craft Feel": -0.5,
+      "Energy": -0.6
+    }
+  },
+  {
+    "id": "sagmeister-walsh",
+    "name": "Sagmeister & Walsh",
+    "description": "Design as provocation. Beauty with an edge.",
+    "axisScores": {
+      "Visual Complexity": 0.7,
+      "Color Saturation": 0.6,
+      "Typography Style": 0.5,
+      "Type Weight": 0.6,
+      "Formality": -0.7,
+      "Energy": 0.8,
+      "Craft Feel": 0.4
+    }
+  },
+  {
+    "id": "emigre-era",
+    "name": "Emigre / Early Digital",
+    "description": "Type as image. The grid as poetry.",
+    "axisScores": {
+      "Typography Style": 0.9,
+      "Visual Complexity": 0.5,
+      "Layout Structure": -0.6,
+      "Era Feel": -0.7,
+      "Craft Feel": 0.3,
+      "Formality": -0.4,
+      "Color Saturation": -0.3
+    }
+  },
+  {
+    "id": "swiss-international",
+    "name": "Swiss International Style",
+    "description": "The grid is truth. Clarity above all.",
+    "axisScores": {
+      "Layout Structure": 0.9,
+      "Typography Style": -0.7,
+      "Visual Complexity": -0.6,
+      "Layout Density": 0.3,
+      "Formality": 0.7,
+      "Color Saturation": -0.5,
+      "Energy": -0.3
+    }
+  },
+  {
+    "id": "japanese-craft",
+    "name": "Japanese Craft",
+    "description": "Silence as a design material. Texture over decoration.",
+    "axisScores": {
+      "Visual Complexity": -0.5,
+      "Craft Feel": 0.9,
+      "Layout Density": -0.6,
+      "Color Temperature": 0.3,
+      "Imagery Style": -0.4,
+      "Energy": -0.5,
+      "Formality": 0.2
+    }
+  },
+  {
+    "id": "brutalist-web",
+    "name": "Web Brutalism",
+    "description": "Raw structure. Anti-polish as philosophy.",
+    "axisScores": {
+      "Visual Complexity": 0.6,
+      "Layout Structure": -0.8,
+      "Formality": -0.8,
+      "Era Feel": -0.3,
+      "Craft Feel": -0.3,
+      "Type Weight": 0.5,
+      "Color Saturation": 0.3
+    }
+  },
+  {
+    "id": "high-fashion-editorial",
+    "name": "High Fashion / Editorial",
+    "description": "Tension between excess and restraint. The page as runway.",
+    "axisScores": {
+      "Typography Style": 0.8,
+      "Visual Complexity": 0.3,
+      "Color Temperature": -0.3,
+      "Imagery Style": 0.6,
+      "Energy": 0.4,
+      "Formality": 0.5,
+      "Layout Density": -0.4
+    }
+  },
+  {
+    "id": "tech-modernist",
+    "name": "Tech Modernism",
+    "description": "Systems thinking applied to surface. Clean without warmth.",
+    "axisScores": {
+      "Visual Complexity": -0.7,
+      "Layout Structure": 0.7,
+      "Typography Style": -0.5,
+      "Formality": 0.3,
+      "Color Saturation": -0.4,
+      "Craft Feel": -0.7,
+      "Era Feel": 0.8
+    }
+  }
+]

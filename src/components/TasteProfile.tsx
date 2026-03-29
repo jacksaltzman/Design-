@@ -11,6 +11,7 @@ interface TasteProfileProps {
   swipeCount: number;
   onShare?: () => void;
   drift?: string | null;
+  persona?: { name: string; description: string; similarity: number } | null;
 }
 
 export default function TasteProfile({
@@ -20,6 +21,7 @@ export default function TasteProfile({
   swipeCount,
   onShare,
   drift,
+  persona,
 }: TasteProfileProps) {
   const [copied, setCopied] = useState(false);
   const sorted = [...axes].sort(
@@ -80,6 +82,15 @@ export default function TasteProfile({
           <p className="text-xs text-[var(--muted)] opacity-60 italic">{drift}</p>
         )}
       </div>
+
+      {/* Design DNA */}
+      {persona && swipeCount >= 20 && (
+        <div className="rounded-md border border-[var(--border)] px-4 py-3 space-y-0.5">
+          <p className="text-[10px] uppercase tracking-widest text-[var(--muted)]">Design DNA</p>
+          <p className="text-sm font-medium">{persona.name}</p>
+          <p className="text-xs text-[var(--muted)]">{persona.description}</p>
+        </div>
+      )}
 
       {/* Axis bars */}
       <div className="space-y-5">
