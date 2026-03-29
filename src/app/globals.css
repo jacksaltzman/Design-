@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --background: #0a0a0a;
+  --background: #09090b;
   --foreground: #ededed;
-  --card-bg: #141414;
+  --card-bg: #141416;
   --accent: #3b82f6;
   --like: #22c55e;
   --dislike: #ef4444;
@@ -17,8 +17,30 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   overflow: hidden;
   height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth GPU-accelerated transforms */
+.card-stack > * {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+/* Subtle vignette on card images */
+.card-vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    transparent 60%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+  pointer-events: none;
 }
