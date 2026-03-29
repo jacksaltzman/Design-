@@ -6,7 +6,14 @@
  * indicating where the user's preference falls on that spectrum.
  */
 
-import type { TasteAxis, TasteAxisScore, TasteProfile, TasteVector } from "./types";
+import type { TasteAxis, TasteAxisScore, TasteAxesFile, TasteProfile, TasteVector } from "./types";
+
+/** Load taste axes from the bundled JSON file. */
+export function getTasteAxes(): TasteAxis[] {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const data = require("../../data/taste_axes.json") as TasteAxesFile;
+  return data.axes;
+}
 
 /** Dot product. */
 function dot(a: number[], b: number[]): number {

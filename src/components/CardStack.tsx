@@ -59,6 +59,11 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
   const [hasEverSwiped, setHasEverSwiped] = useState(false);
   const domainTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ── Axis breakdown state ──
+  interface AxisResult { name: string; label: string; score: number }
+  const [axisBreakdown, setAxisBreakdown] = useState<AxisResult[] | null>(null);
+  const axisTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const topCardRef = useRef<SwipeCardHandle | ProbeCardHandle | null>(null);
   const swipeCountRef = useRef(0);
   const swipesSinceDuel = useRef(0);
@@ -66,6 +71,8 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
   const swipesSinceProbe = useRef(0);
   const probeCounter = useRef(0);
   const swipedIdsRef = useRef<string[]>([]);
+  const likedIdsRef = useRef<string[]>([]);
+  const lastSwipedCard = useRef<CardItem | null>(null);
 
   // ── Session ID header helper ──
   const sessionHeaders = useCallback((): HeadersInit => {
@@ -74,9 +81,11 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
   }, []);
 
   // ── Persistence: save after every state change ──
-  const persist = useCallback((taste: TasteVector, swipedIds: string[]) => {
+  const persist = useCallback((taste: TasteVector, swipedIds: string[], likedIds?: string[]) => {
     swipedIdsRef.current = swipedIds;
-    saveState(taste, swipedIds);
+    const liked = likedIds ?? likedIdsRef.current;
+    likedIdsRef.current = liked;
+    saveState(taste, swipedIds, liked);
   }, []);
 
   // ── Initialize: check localStorage, restore or onboard ──
@@ -97,6 +106,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
 
         swipeCountRef.current = saved.taste.swipeCount;
         swipedIdsRef.current = saved.swipedIds;
+        likedIdsRef.current = saved.likedIds;
         onSwipeCountChange(saved.taste.swipeCount);
 
         // Load initial swipe cards
@@ -196,14 +206,46 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
 
   const showDomain = useCallback((domain: string) => {
     if (domainTimeoutRef.current) clearTimeout(domainTimeoutRef.current);
+    setAxisBreakdown(null);
+    if (axisTimeoutRef.current) clearTimeout(axisTimeoutRef.current);
     setLastSwipedDomain(domain);
     domainTimeoutRef.current = setTimeout(() => setLastSwipedDomain(null), 1500);
   }, []);
+
+  // ── "Why this?" handler ──
+
+  const handleWhyThis = useCallback(async () => {
+    if (!lastSwipedDomain) return;
+    if (axisBreakdown) {
+      // Toggle off if already showing
+      setAxisBreakdown(null);
+      if (axisTimeoutRef.current) clearTimeout(axisTimeoutRef.current);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/design-axes?id=${encodeURIComponent(lastSwipedDomain)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setAxisBreakdown(data.axes);
+      if (axisTimeoutRef.current) clearTimeout(axisTimeoutRef.current);
+      axisTimeoutRef.current = setTimeout(() => setAxisBreakdown(null), 3000);
+    } catch {
+      // silently fail
+    }
+  }, [lastSwipedDomain, axisBreakdown]);
 
   // ── Swipe handlers ──
 
   const handleDesignSwipe = useCallback(
     async (designId: string, liked: boolean) => {
+      // Save the top card for potential undo before removing it
+      lastSwipedCard.current = cards[0] ?? null;
+      setCanUndo(true);
+
+      if (liked) {
+        likedIdsRef.current = [...likedIdsRef.current, designId];
+      }
+
       const res = await fetch("/api/swipe", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...sessionHeaders() },
@@ -214,7 +256,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
         const data = await res.json();
         swipeCountRef.current = data.swipeCount;
         onSwipeCountChange(data.swipeCount);
-        persist(data.taste, data.swipedIds);
+        persist(data.taste, data.swipedIds, likedIdsRef.current);
       }
 
       showDomain(designId);
@@ -233,7 +275,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
         if (newCard) setCards((prev) => [...prev, newCard]);
       }
     },
-    [fetchNext, onSwipeCountChange, persist, maybeChangeFlow, sessionHeaders, showDomain]
+    [cards, fetchNext, onSwipeCountChange, persist, maybeChangeFlow, sessionHeaders, showDomain]
   );
 
   const handleProbeSwipe = useCallback(
@@ -275,6 +317,24 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
     [cards, fetchNext, onSwipeCountChange, maybeChangeFlow, sessionHeaders]
   );
 
+  // ── Undo last swipe ──
+
+  const [canUndo, setCanUndo] = useState(false);
+
+  const handleUndo = useCallback(() => {
+    if (!lastSwipedCard.current || flow.type !== "swiping") return;
+    const card = lastSwipedCard.current;
+    lastSwipedCard.current = null;
+    setCanUndo(false);
+
+    // If the card was liked, remove it from likedIds
+    if (card.type === "design") {
+      likedIdsRef.current = likedIdsRef.current.filter((id) => id !== card.id);
+    }
+
+    setCards((prev) => [card, ...prev]);
+  }, [flow.type]);
+
   // ── Button / keyboard swipe ──
 
   const handleButtonSwipe = useCallback(
@@ -299,13 +359,18 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (flow.type !== "swiping" || cards.length === 0 || isAnimating) return;
+      if (flow.type !== "swiping") return;
+      if (e.key === "z" || e.key === "Z" || e.key === "u" || e.key === "U") {
+        handleUndo();
+        return;
+      }
+      if (cards.length === 0 || isAnimating) return;
       if (e.key === "ArrowLeft") handleButtonSwipe("left");
       else if (e.key === "ArrowRight") handleButtonSwipe("right");
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [flow, cards, isAnimating, handleButtonSwipe]);
+  }, [flow, cards, isAnimating, handleButtonSwipe, handleUndo]);
 
   // ── Onboarding complete ──
 
@@ -460,6 +525,18 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
               <line x1="4" y1="4" x2="12" y2="12" />
             </svg>
           </button>
+          {canUndo && (
+            <button
+              onClick={handleUndo}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--foreground)] opacity-60 transition-all duration-150 hover:border-neutral-300 hover:opacity-100 hover:shadow-sm active:scale-90"
+              aria-label="Undo"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 7a5 5 0 1 0 1.5-3.5L2 2" />
+                <polyline points="2 2 2 5.5 5.5 5.5" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={() => handleButtonSwipe("right")}
             disabled={isAnimating}
@@ -480,18 +557,38 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
             </svg>
           </button>
 
-          {/* Domain name reveal */}
+          {/* Domain name reveal + "Why this?" popover */}
           <AnimatePresence>
             {lastSwipedDomain && (
-              <motion.p
-                key={lastSwipedDomain}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="absolute bottom-[-28px] left-0 right-0 text-center text-xs text-[var(--muted)]"
-              >
-                {lastSwipedDomain}
-              </motion.p>
+              <div className="absolute bottom-[-28px] left-0 right-0 flex flex-col items-center gap-1">
+                {/* Axis breakdown popover */}
+                <AnimatePresence>
+                  {axisBreakdown && (
+                    <motion.div
+                      key="axis-breakdown"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                      className="rounded-md bg-white px-3 py-1.5 shadow-sm border border-[var(--border)]"
+                    >
+                      <p className="text-[10px] text-[var(--muted)] text-center">
+                        {axisBreakdown.map((ax) => ax.label).join(" · ")}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <motion.button
+                  key={lastSwipedDomain}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  onClick={handleWhyThis}
+                  className="text-xs text-[var(--muted)] cursor-pointer hover:text-[var(--foreground)] transition-colors duration-150 bg-transparent border-none p-0"
+                >
+                  {lastSwipedDomain}
+                </motion.button>
+              </div>
             )}
           </AnimatePresence>
 

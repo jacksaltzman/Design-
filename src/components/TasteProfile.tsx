@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { TasteAxisScore } from "@/lib/types";
 
 interface TasteProfileProps {
@@ -7,6 +9,8 @@ interface TasteProfileProps {
   description: string;
   confidence: number;
   swipeCount: number;
+  onShare?: () => void;
+  drift?: string | null;
 }
 
 export default function TasteProfile({
@@ -14,23 +18,67 @@ export default function TasteProfile({
   description,
   confidence,
   swipeCount,
+  onShare,
+  drift,
 }: TasteProfileProps) {
+  const [copied, setCopied] = useState(false);
   const sorted = [...axes].sort(
     (a, b) => Math.abs(b.score) - Math.abs(a.score)
   );
+
+  function handleShareClick() {
+    if (onShare) {
+      onShare();
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  }
 
   return (
     <div className="space-y-10">
       {/* Description */}
       <div className="space-y-3">
-        <blockquote className="border-l-2 border-[var(--border)] pl-4 italic">
-          <p className="text-sm leading-relaxed text-[var(--foreground)]">
-            {description}
-          </p>
-        </blockquote>
+        <div className="relative">
+          <blockquote className="border-l-2 border-[var(--border)] pl-4 italic">
+            <p className="text-sm leading-relaxed text-[var(--foreground)]">
+              {description}
+            </p>
+          </blockquote>
+          {onShare && (
+            <div className="absolute top-0 right-0 flex items-center gap-2">
+              <AnimatePresence>
+                {copied && (
+                  <motion.span
+                    key="copied"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-xs text-[var(--muted)]"
+                  >
+                    Copied!
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              <button
+                onClick={handleShareClick}
+                className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                aria-label="Share taste profile"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9.5 1L13 4.5 9.5 8" />
+                  <path d="M13 4.5H5a4 4 0 0 0-4 4v1" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
         <p className="text-xs text-[var(--muted)]">
           {swipeCount} swipes &middot; {Math.round(confidence * 100)}% confidence
         </p>
+        {drift && (
+          <p className="text-xs text-[var(--muted)] opacity-60 italic">{drift}</p>
+        )}
       </div>
 
       {/* Axis bars */}
