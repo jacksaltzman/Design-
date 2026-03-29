@@ -11,7 +11,7 @@ import { join } from "path";
 import type { Design, TasteVector } from "./types";
 import { initTasteVector } from "./taste-model";
 import { getDimension, loadEmbeddings } from "./embeddings";
-import { supabase } from "./supabase";
+import { getSupabase } from "./supabase";
 
 // ── In-memory state (per serverless instance, keyed by sessionId) ──
 
@@ -100,7 +100,7 @@ export function recordSwipe(sessionId: string, designId: string, liked: boolean,
 
   // Fire-and-forget Supabase insert
   void Promise.resolve(
-    supabase.from("swipes").insert({
+    getSupabase().from("swipes").insert({
       session_id: sessionId,
       design_id: designId,
       liked,
@@ -187,7 +187,7 @@ export function saveTasteState(sessionId: string, taste: TasteVector): void {
 
   // Fire-and-forget Supabase upsert
   void Promise.resolve(
-    supabase.from("taste_vectors").upsert({
+    getSupabase().from("taste_vectors").upsert({
       session_id: sessionId,
       weights: taste.weights,
       uncertainty: taste.uncertainty,
@@ -298,7 +298,7 @@ export function saveContextTasteState(
 
   // Fire-and-forget Supabase upsert
   void Promise.resolve(
-    supabase.from("context_taste_vectors").upsert({
+    getSupabase().from("context_taste_vectors").upsert({
       session_id: sessionId,
       category,
       weights: taste.weights,
