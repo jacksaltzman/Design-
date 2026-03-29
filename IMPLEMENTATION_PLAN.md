@@ -1,325 +1,317 @@
-# Implementation Plan: Design Taste Learning App (Phase 1 MVP)
+# Implementation Plan: Design Corpus
 
-## Goal
-Build a working "Tinder for Design" that learns a user's design taste through swipes, using CLIP embeddings + Bayesian logistic regression + Thompson Sampling.
+## The Problem
 
----
+The corpus is the most consequential decision in this project. The algorithm can only learn distinctions that exist in the data. If every design is a clean SaaS landing page, the model learns nothing about your taste — just that you like or dislike SaaS pages. The corpus needs to span the full space of digital design so that your swipes carve out a meaningful, specific region.
 
-## Tech Stack
+## Design Philosophy
 
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-| Frontend | **Next.js 14 + TypeScript** | App router, RSC for initial load, easy API routes |
-| Swipe UI | **react-tinder-card** or custom Framer Motion | Swipe gesture handling with spring physics |
-| Styling | **Tailwind CSS** | Fast iteration, good defaults |
-| Backend API | **Next.js API routes (Route Handlers)** | Keeps it one repo; no separate server for MVP |
-| ML / Embeddings | **Python scripts** (offline preprocessing) | CLIP via `open_clip` or `transformers`, numpy for taste model |
-| Taste Model Runtime | **TypeScript (in API routes)** | Bayesian logistic regression is just matrix math — keep it in the main app, no Python server needed at runtime |
-| Database | **SQLite via better-sqlite3** (MVP) | Zero config, single file, fast enough for single-user MVP |
-| Image Storage | **Local `/public/designs/` directory** (MVP) | Simple, no cloud infra needed |
-| Embedding Storage | **JSON/binary file** (MVP) | Pre-computed CLIP vectors, loaded into memory on startup |
+**The corpus should feel like walking through a great design museum — not a mood board.**
 
-### Why no separate Python backend at runtime?
-The taste model is a dot product + sigmoid + Bayesian update. This is ~20 lines of math that runs fine in TypeScript. The only Python needed is the **offline preprocessing** step (running CLIP on images). This keeps the deployed app simple — one Next.js process.
+A mood board is homogeneous by design. A museum shows you Dieter Rams next to David Carson next to a Japanese train ticket machine. The contrast is what makes your reactions legible. When you dislike something, that's as informative as when you like it — but only if the thing you disliked is genuinely different from what you liked.
+
+This means we need:
+- **Breadth over depth** — 50 design styles represented, not 500 examples of one style
+- **Quality floor** — everything should be well-executed within its style (you're learning taste, not quality detection)
+- **Real diversity** — not just Western/Silicon Valley design. Japanese, Swiss, Dutch, Latin American, Korean design traditions all look and feel different
+- **Mixed formats** — websites, mobile apps, posters, editorial layouts, dashboards, brand identities
+- **Intentional provocation** — include designs that are polarizing, not just "safe." Brutalist sites, maximalist editorial, experimental typography. These generate the strongest signals.
 
 ---
 
-## Project Structure
+## Source Strategy
 
-```
-Design-/
-├── ALGORITHM_RESEARCH.md          # (exists)
-├── IMPLEMENTATION_PLAN.md         # (this file)
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-├── next.config.js
-│
-├── scripts/                       # Offline Python preprocessing
-│   ├── requirements.txt           # open_clip, torch, numpy, pillow
-│   ├── embed_designs.py           # Compute CLIP embeddings for all images
-│   ├── compute_taste_axes.py      # Generate text embeddings for taste dimensions
-│   └── seed_database.py           # Populate SQLite with design metadata + embeddings
-│
-├── data/
-│   ├── designs.db                 # SQLite: design metadata, user swipes, taste vectors
-│   ├── embeddings.json            # Pre-computed CLIP vectors (design_id → float[512])
-│   └── taste_axes.json            # Pre-computed text embeddings for interpretable axes
-│
-├── public/
-│   └── designs/                   # Design screenshot images (curated)
-│       ├── 001.png
-│       ├── 002.png
-│       └── ...
-│
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx             # Root layout
-│   │   ├── page.tsx               # Main swipe interface
-│   │   ├── profile/
-│   │   │   └── page.tsx           # Taste profile visualization
-│   │   └── api/
-│   │       ├── next-card/
-│   │       │   └── route.ts       # GET: Thompson Sampling → next card to show
-│   │       ├── swipe/
-│   │       │   └── route.ts       # POST: Record swipe, update taste model
-│   │       └── taste-profile/
-│   │           └── route.ts       # GET: Current taste profile (axes + description)
-│   │
-│   ├── components/
-│   │   ├── SwipeCard.tsx           # Single design card with swipe gesture
-│   │   ├── CardStack.tsx           # Stack of cards with swipe handling
-│   │   ├── TasteProfile.tsx        # Radar/bar chart of taste dimensions
-│   │   ├── SwipeCounter.tsx        # "12 swipes — your profile is taking shape"
-│   │   └── TasteDescription.tsx    # Natural language taste summary
-│   │
-│   └── lib/
-│       ├── taste-model.ts          # Bayesian logistic regression (core algorithm)
-│       ├── thompson-sampling.ts    # Card selection with uncertainty sampling
-│       ├── embeddings.ts           # Load and query pre-computed embeddings
-│       ├── taste-axes.ts           # Map taste vector to interpretable dimensions
-│       ├── db.ts                   # SQLite connection and queries
-│       └── types.ts                # Shared TypeScript types
-```
+### Primary: Playwright screenshots of curated URLs (websites)
+
+**Why this wins over Dribbble/API scraping:**
+- Real websites at real viewport sizes — not cropped mockups or idealized presentations
+- We control screenshot quality, viewport, and capture settings
+- No API rate limits, no OAuth, no terms-of-service gray areas
+- Repeatable pipeline — add URLs anytime, re-run script
+- Screenshots look like what users actually encounter
+
+**The pipeline:**
+1. Maintain a `scripts/urls.json` — a curated list of URLs tagged by style category
+2. Playwright visits each URL at desktop (1440×900) and mobile (390×844) viewports
+3. Waits for load + scroll to trigger lazy images
+4. Captures a viewport-sized screenshot (not full-page — we want the "above the fold" impression, which is how taste works)
+5. Saves as high-quality WebP to `public/designs/`
+6. Generates metadata JSON for each image
+
+**Why above-the-fold, not full-page:**
+Taste is formed in the first 2-3 seconds of looking at a design. A full-page screenshot of a 10,000px page dilutes the impression with footer content and repetitive sections. We want the hero — the first impression.
+
+### Secondary: Manually curated screenshots (mobile apps, posters, editorial)
+
+Not everything is a live website. Some of the most distinctive design happens in:
+- Mobile app UIs (from Mobbin, App Store screenshots)
+- Print/editorial layouts (scanned or photographed)
+- Poster design and brand identities
+- Dashboard and data visualization design
+
+These get added manually as high-quality images to the corpus, tagged appropriately.
+
+### What we're NOT doing:
+- **Dribbble API** — shots are self-promotional mockups, not real shipped design. They skew toward a narrow "Dribbble aesthetic" that doesn't represent the real design landscape.
+- **Stock photo APIs** (Unsplash/Pexels) — these are photographs, not design screenshots.
+- **Rico dataset** — 66k Android screens, but they're old (2017), low resolution, and heavily skewed toward stock Android UI patterns. Not useful for taste.
+- **Automated scraping of galleries** — copyright risk, quality control problems.
 
 ---
 
-## Implementation Steps
+## Style Taxonomy
 
-### Step 1: Project Scaffolding
-- Initialize Next.js 14 with TypeScript, Tailwind, App Router
-- Set up project structure (directories, configs)
-- Install dependencies: `better-sqlite3`, `framer-motion`
-- Create TypeScript types for core domain objects
+The corpus should cover these categories with roughly equal representation. Each category gets 30-50 URLs/images, giving us 500-800 total.
 
-**Key types:**
-```typescript
-interface Design {
-  id: string;
-  imageUrl: string;
-  source?: string;        // where the design came from
-  tags?: string[];         // optional metadata
-}
+### By Design Movement / Aesthetic
 
-interface Swipe {
-  designId: string;
-  liked: boolean;
-  timestamp: number;
-}
+| Category | Description | Sources |
+|----------|-------------|---------|
+| **Swiss/International** | Grid-based, clean, Helvetica, structured | awwwards.com winners, design agency sites |
+| **Minimalist** | Extreme reduction, whitespace, restraint | Apple.com, Aesop, Muji, Everlane |
+| **Brutalist** | Raw, anti-design, exposed structure | brutalistwebsites.com, experimental sites |
+| **Editorial/Magazine** | Strong type hierarchy, columns, serif headers | NYT, Bloomberg, Monocle, Eye Magazine |
+| **Maximalist** | Dense, layered, colorful, overwhelming (intentionally) | Fashion brands, festival sites, art collectives |
+| **Corporate/Enterprise** | Professional, trustworthy, structured | Salesforce, IBM, McKinsey, bank sites |
+| **Indie/Craft** | Handmade feel, personal, warm, imperfect | Small studio sites, personal portfolios |
+| **Japanese** | Unique density, character layouts, distinctive color | Japanese e-commerce, restaurant sites, municipal sites |
+| **Y2K/Retro** | Nostalgic, glossy, 2000s revival | Retro-styled modern sites, archive.org gems |
+| **3D/Immersive** | WebGL, three.js, spatial, cinematic | Award-winning immersive experiences |
+| **Dark Mode** | Dark backgrounds, neon accents, moody | Developer tools, music platforms, gaming |
+| **Dashboard/Data** | Information-dense, charts, metrics | Analytics tools, admin panels, BI tools |
+| **Mobile App UI** | Native app screens, iOS/Android patterns | Captured from Mobbin-style references |
+| **Typographic** | Type as the primary design element | Type foundry sites, typographic experiments |
+| **Illustration-Heavy** | Custom illustration as primary visual | Mailchimp, Slack, Notion-style sites |
+| **Photography-Led** | Full-bleed photography, minimal chrome | Fashion, travel, architecture portfolio sites |
 
-interface TasteVector {
-  weights: number[];       // 512-dim vector (same dim as CLIP)
-  uncertainty: number[];   // per-dimension uncertainty (diagonal covariance)
-  swipeCount: number;
-}
+### By Cultural/Geographic Origin
 
-interface TasteAxis {
-  name: string;
-  lowLabel: string;        // e.g., "Cool tones"
-  highLabel: string;       // e.g., "Warm tones"
-  textEmbedding: number[]; // CLIP text embedding for this axis
-  score?: number;          // user's position on this axis (-1 to 1)
-}
+Intentionally include design from:
+- **Switzerland/Germany** — systematic, grid, precision
+- **Japan** — unique density and aesthetic sensibility
+- **Netherlands** — experimental, conceptual
+- **South Korea** — distinctive web aesthetic, high visual density
+- **Scandinavia** — restrained, functional, light
+- **Latin America** — color-forward, expressive
+- **UK** — editorial tradition, wit
 
-interface TasteProfile {
-  axes: TasteAxis[];
-  description: string;     // natural language summary
-  confidence: number;      // 0-1 based on swipe count and convergence
-}
+### By Format
+
+- **Marketing/Landing pages** (~30%) — hero sections, CTAs, product showcases
+- **Editorial/Content** (~20%) — articles, blogs, magazines
+- **Product/App UI** (~20%) — SaaS dashboards, app screens, tools
+- **Portfolio/Agency** (~15%) — creative studio and individual portfolios
+- **E-commerce** (~10%) — product pages, shop layouts
+- **Experimental/Art** (~5%) — non-commercial, boundary-pushing
+
+---
+
+## Technical Pipeline
+
+### Step 1: Build the URL list (`scripts/urls.json`)
+
+```json
+[
+  {
+    "url": "https://apple.com",
+    "category": "minimalist",
+    "region": "us",
+    "format": "marketing",
+    "tags": ["tech", "product", "clean"]
+  },
+  ...
+]
 ```
 
-### Step 2: Offline Preprocessing Pipeline (Python)
+This is the most important step. It requires taste and judgment — not automation.
 
-#### 2a: Curate Design Images
-- Collect 200-500 diverse digital design screenshots to start
-- Categories: websites, mobile apps, posters, dashboards, landing pages, editorial
-- Place in `public/designs/`
-- Create a simple CSV/JSON manifest with metadata (id, filename, source, category)
+Plan: Start with 100 hand-picked URLs across all categories, expand to 500+.
 
-#### 2b: `embed_designs.py`
-- Load CLIP ViT-L/14 via `open_clip`
-- Process each image → 512-dim embedding vector
-- Normalize embeddings to unit length
-- Save as `data/embeddings.json`: `{ "001": [0.023, -0.114, ...], ... }`
+**Sources for finding URLs:**
+- [Godly.website](https://godly.website/) — hand-picked cutting-edge web design
+- [Awwwards](https://www.awwwards.com/) — award winners, filterable by style
+- [Brutalist Websites](https://brutalistwebsites.com/) — brutalist category
+- [Typewolf](https://www.typewolf.com/) — typography-focused sites
+- [Minimal Gallery](https://minimal.gallery/) — minimalist sites
+- [One Page Love](https://onepagelove.com/) — single-page designs
+- [Land-book](https://land-book.com/) — landing page designs
+- [SaaS Landing Page](https://saaslandingpage.com/) — SaaS-specific
+- [Dark Mode Design](https://www.darkmodedesign.com/) — dark UI collection
+- [Japanese Web Design Gallery](https://bm.straightline.jp/) — Japanese design
 
-#### 2c: `compute_taste_axes.py`
-- Define ~15 taste axes as pairs of text prompts:
-  ```python
-  axes = [
-    ("cool toned minimalist design", "warm toned colorful design"),
-    ("sans-serif clean typography", "serif editorial typography"),
-    ("spacious airy layout", "dense information-rich layout"),
-    # ... etc
-  ]
-  ```
-- Encode each prompt with CLIP text encoder
-- Axis direction = normalized(high_embedding - low_embedding)
-- Save as `data/taste_axes.json`
+### Step 2: Playwright screenshot script (`scripts/capture_screenshots.py`)
 
-#### 2d: `seed_database.py`
-- Create SQLite schema (designs table, swipes table, user_taste table)
-- Insert design metadata
-- Verify embedding dimensions match
-
-### Step 3: Core Algorithm Implementation (TypeScript)
-
-#### 3a: `taste-model.ts` — Bayesian Logistic Regression
 ```
-Core operations:
-- initTasteVector(): Initialize w ~ N(0, σ²I), return weights + uncertainty
-- updateTasteVector(current, embedding, liked): Bayesian update after swipe
-  - Compute gradient of log-likelihood
-  - Update mean: w_new = w + lr * gradient
-  - Update uncertainty: shrink uncertainty in the direction of the embedding
-  - (Laplace approximation to the posterior)
-- predictLikeProbability(tasteVector, embedding): sigmoid(w · e)
-- predictUncertainty(tasteVector, embedding): e^T Σ e (predictive variance)
+For each URL in urls.json:
+  1. Launch Playwright Chromium (headless)
+  2. Set viewport to 1440×900
+  3. Navigate to URL
+  4. Wait for network idle + 2s extra for animations
+  5. Dismiss cookie banners (click common selectors)
+  6. Capture viewport screenshot as WebP (quality 90)
+  7. Save to public/designs/{id}.webp
+  8. Log success/failure
+  9. Rate limit: 2s between requests (be polite)
 ```
 
-#### 3b: `thompson-sampling.ts` — Card Selection
-```
-Core operations:
-- selectNextCard(tasteVector, candidateEmbeddings, recentlyShown):
-  1. Filter out recently shown cards (last N)
-  2. For each candidate:
-     a. Sample w_sample ~ N(w_mean, diag(uncertainty))
-     b. Compute sampled_score = sigmoid(w_sample · embedding)
-  3. Apply diversity constraint: penalize candidates too similar to last shown
-  4. Return candidate with highest sampled_score
-```
+Also capture at mobile viewport (390×844) as a separate set — creates natural variety and tests responsive design taste.
 
-#### 3c: `taste-axes.ts` — Interpretable Profile
-```
-Core operations:
-- computeTasteProfile(tasteVector, axes):
-  1. For each axis, compute score = w · axis_direction
-  2. Normalize scores to [-1, 1]
-  3. Return sorted axes with scores
-- generateDescription(profile):
-  1. Take top 3-4 strongest axes
-  2. Template-based natural language: "You gravitate toward {high_label} over {low_label}"
+### Step 3: Quality review (manual)
+
+After automated capture:
+- Delete screenshots that failed (blank pages, CAPTCHAs, error states)
+- Delete screenshots that are too similar to others (3 sites from same template)
+- Flag screenshots that are low quality or unrepresentative
+- Goal: ~500 high-quality, diverse screenshots
+
+### Step 4: Re-run embedding pipeline
+
+```bash
+python scripts/embed_designs.py      # CLIP embeddings for all new images
+python scripts/compute_taste_axes.py # taste axes (only needed once)
 ```
 
-### Step 4: Database Layer
+### Step 5: Verify diversity in embedding space
 
-SQLite schema:
-```sql
-CREATE TABLE designs (
-  id TEXT PRIMARY KEY,
-  filename TEXT NOT NULL,
-  source TEXT,
-  category TEXT,
-  created_at INTEGER DEFAULT (unixepoch())
-);
-
-CREATE TABLE swipes (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  design_id TEXT NOT NULL REFERENCES designs(id),
-  liked BOOLEAN NOT NULL,
-  created_at INTEGER DEFAULT (unixepoch())
-);
-
-CREATE TABLE taste_state (
-  id INTEGER PRIMARY KEY CHECK (id = 1),  -- singleton row
-  weights BLOB NOT NULL,          -- Float64Array as binary
-  uncertainty BLOB NOT NULL,      -- Float64Array as binary
-  swipe_count INTEGER DEFAULT 0,
-  updated_at INTEGER DEFAULT (unixepoch())
-);
-```
-
-### Step 5: API Routes
-
-#### `GET /api/next-card`
-1. Load current taste vector from DB (or initialize if first visit)
-2. Load embeddings into memory (cached after first load)
-3. Get list of already-swiped design IDs
-4. Run Thompson Sampling to select next card
-5. Return `{ design: { id, imageUrl }, swipeCount, confidence }`
-
-#### `POST /api/swipe`
-Body: `{ designId: string, liked: boolean }`
-1. Record swipe in `swipes` table
-2. Load current taste vector
-3. Load embedding for swiped design
-4. Run Bayesian update
-5. Save updated taste vector
-6. Return `{ swipeCount, tasteUpdated: true }`
-
-#### `GET /api/taste-profile`
-1. Load current taste vector
-2. Load taste axes
-3. Compute profile scores
-4. Generate natural language description
-5. Return `TasteProfile` object
-
-### Step 6: Swipe UI
-
-#### `CardStack.tsx`
-- Pre-fetch next 3 cards from `/api/next-card`
-- Display top card with swipe gesture (Framer Motion `drag` + `onDragEnd`)
-- Swipe right → call `/api/swipe` with liked=true
-- Swipe left → call `/api/swipe` with liked=false
-- Also support keyboard (← / →) and button taps
-- Spring animation for card exit + next card entrance
-- Show swipe count badge
-
-#### `SwipeCard.tsx`
-- Full-bleed design image
-- Subtle gradient overlay at bottom for source attribution
-- Drag rotation (tilt card as it's dragged)
-- Color tint feedback (green for right-drag, red for left-drag)
-
-#### Taste Profile Page (`/profile`)
-- Radar chart or horizontal bar chart of taste axes
-- Each axis shows the bipolar label and score
-- Natural language description at top
-- "Based on N swipes" confidence indicator
-- Link back to keep swiping
-
-### Step 7: Polish & Cold-Start UX
-
-- **First-run experience:** Brief intro explaining what the app does, then straight into swiping
-- **Early card selection:** For first 10 cards before the model has signal, select maximally diverse designs (spread across embedding space using k-means cluster centroids)
-- **Progress indicators:** "5 more swipes to unlock your taste profile" etc.
-- **Swipe milestone messages:** After 10, 25, 50 swipes — show evolving profile
+Run a quick analysis:
+- PCA/t-SNE visualization of all embeddings — should show spread, not clusters
+- Check that each style category occupies a distinct region
+- If some category dominates, add more from underrepresented categories
 
 ---
 
 ## Implementation Order
 
-1. **Step 1**: Project scaffolding + types (30 min)
-2. **Step 2a**: Gather initial design images — need ~200 minimum to start (separate task, can use placeholder images for dev)
-3. **Step 2b-d**: Python preprocessing scripts (embeddings, axes, DB seed)
-4. **Step 3a**: Taste model core math
-5. **Step 3b**: Thompson Sampling
-6. **Step 3c**: Taste axes interpretation
-7. **Step 4**: Database layer
-8. **Step 5**: API routes (next-card, swipe, taste-profile)
-9. **Step 6**: Swipe UI components
-10. **Step 7**: Profile page + polish
-
-Steps 3a/3b/3c can be built and unit-tested independently of the UI. Steps 2 and 6 can be developed in parallel.
+1. **Build `scripts/urls.json`** with initial 100 URLs across all categories
+2. **Build `scripts/capture_screenshots.py`** — Playwright pipeline
+3. **Run captures** and manually review
+4. **Update the image format** — switch from PNG to WebP, update the code to handle both
+5. **Re-run embeddings** (with real CLIP if possible, random for dev)
+6. **Expand to 500+** URLs with a second curation pass
+7. **Verify embedding diversity** with visualization script
 
 ---
 
-## Design Image Sourcing (for MVP)
+## URL Starter List (First 100)
 
-For the initial corpus, we can use:
-- **Dribbble/Behance** screenshots (manual curation)
-- **Mobbin** (app design screenshots)
-- **Land-book** / **Godly** (web design screenshots)
-- **Savee.it** collections
-- Placeholder: use a mix of ~50 hand-picked designs for initial development, expand to 500+ before user testing
+### Minimalist (15)
+- apple.com
+- aesop.com
+- everlane.com
+- muji.com/us
+- stripe.com
+- linear.app
+- rapha.cc
+- acnestudios.com
+- cos.com
+- dieter-rams.com
+- braun-audio.com
+- teenage.engineering
+- nothing.tech
+- cowboy.com
+- pfrm.co
 
----
+### Editorial / Typographic (15)
+- bloomberg.com/businessweek
+- eyeondesign.aiga.org
+- monocle.com
+- nytimes.com
+- ft.com
+- theparisreview.org
+- kinfolk.com
+- cereal-magazine.com
+- typewolf.com/site-of-the-day
+- klim.co.nz
+- commercialtype.com
+- fonts.ilovetypography.com
+- the-brandidentity.com
+- thecreativeindependent.com
+- nautil.us
 
-## What's Explicitly Out of Scope for Phase 1
-- Pairwise duels (Phase 2)
-- SigLIP 2 upgrade (Phase 2)
-- UIClip quality filtering (Phase 2)
-- Promptable embeddings (Phase 2)
-- Collaborative filtering (Phase 3)
-- User accounts / multi-user (Phase 3)
-- Cloud deployment (MVP runs locally)
-- Mobile-native app (web-first)
+### Brutalist / Experimental (10)
+- brutalistwebsites.com
+- hfrancis.studio
+- ericandraos.com
+- cargo.site
+- sont.space
+- crazyones.co
+- sf1.tech
+- anthonyhobday.com
+- berkeleygraphics.com
+- securite-gun.fr
+
+### Corporate / Enterprise (10)
+- ibm.com/design
+- salesforce.com
+- mckinsey.com
+- deloitte.com
+- blackrock.com
+- palantir.com
+- snowflake.com
+- databricks.com
+- stripe.com/atlas
+- square.com
+
+### 3D / Immersive (10)
+- midwam.com
+- lusion.co
+- active-theory.com
+- immersive-g.com
+- bruno-simon.com
+- richardmattka.com
+- monopo.vn
+- resn.co.nz
+- unseen.co
+- hello-monday.com
+
+### Dark Mode / Developer (10)
+- vercel.com
+- github.com
+- figma.com
+- raycast.com
+- warp.dev
+- arc.net
+- supabase.com
+- planetscale.com
+- railway.app
+- fly.io
+
+### Japanese (8)
+- muji.com/jp
+- uniqlo.com/jp
+- toyota.jp
+- nhk.or.jp
+- isseymiyake.com
+- teamlab.art
+- kakaku.com
+- zozo.com
+
+### Indie / Craft (7)
+- studio-freight.com
+- basement.studio
+- designbyhumans.com
+- madebyshape.co.uk
+- fiftythree.com
+- readymag.com
+- papersmiths.co.uk
+
+### Illustration-Heavy (5)
+- mailchimp.com
+- notion.so
+- duolingo.com
+- headspace.com
+- pitch.com
+
+### Maximalist / Fashion (5)
+- balenciaga.com
+- gucci.com
+- yfrfrancis.com
+- kfrith.com
+- ssense.com
+
+### Dashboard / Data (5)
+- observablehq.com
+- grafana.com/demos
+- metabase.com
+- posthog.com
+- amplitude.com

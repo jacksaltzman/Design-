@@ -9,6 +9,8 @@
  * this with a real database (Postgres, Turso, etc.).
  */
 
+import { readFileSync, readdirSync } from "fs";
+import { join } from "path";
 import type { Design, TasteVector } from "./types";
 import { initTasteVector } from "./taste-model";
 import { getDimension, loadEmbeddings } from "./embeddings";
@@ -17,27 +19,65 @@ import { getDimension, loadEmbeddings } from "./embeddings";
 
 let swipes: { designId: string; liked: boolean; timestamp: number }[] = [];
 let tasteState: TasteVector | null = null;
+let filenameLookup: Record<string, string> | null = null;
 
-// ── Designs (derived from embeddings.json) ──
+/** Build a lookup from design ID → actual filename on disk. */
+function getFilenameLookup(): Record<string, string> {
+  if (filenameLookup) return filenameLookup;
+
+  filenameLookup = {};
+
+  // Try to load metadata from capture script
+  try {
+    const metaPath = join(process.cwd(), "data", "design_metadata.json");
+    const meta = JSON.parse(readFileSync(metaPath, "utf-8")) as { id: string; filename: string }[];
+    for (const entry of meta) {
+      filenameLookup[entry.id] = entry.filename;
+    }
+    return filenameLookup;
+  } catch {
+    // No metadata file — fall back to scanning the designs directory
+  }
+
+  try {
+    const designsDir = join(process.cwd(), "public", "designs");
+    const files = readdirSync(designsDir);
+    for (const file of files) {
+      const ext = file.match(/\.(png|jpg|jpeg|webp)$/i);
+      if (ext) {
+        const id = file.slice(0, -ext[0].length);
+        filenameLookup[id] = file;
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet
+  }
+
+  return filenameLookup;
+}
+
+// ── Designs (derived from embeddings.json + filesystem) ──
 
 export function getDesign(id: string): Design | null {
   const index = loadEmbeddings();
   if (!index.embeddings[id]) return null;
 
-  // Detect file extension — try common formats
+  const lookup = getFilenameLookup();
+  const filename = lookup[id] || `${id}.png`;
+
   return {
     id,
-    filename: `${id}.png`,
-    source: null as unknown as string | undefined,
-    category: null as unknown as string | undefined,
+    filename,
   };
 }
 
 export function getAllDesigns(): Design[] {
   const index = loadEmbeddings();
+  const lookup = getFilenameLookup();
+
   return Object.keys(index.embeddings).map((id) => ({
     id,
-    filename: `${id}.png`,
+    filename: lookup[id] || `${id}.png`,
   }));
 }
 
