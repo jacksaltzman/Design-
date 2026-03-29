@@ -15,18 +15,32 @@ from pathlib import Path
 
 import numpy as np
 
-try:
-    import torch
-    import open_clip
-
-    HAS_CLIP = True
-except ImportError:
-    HAS_CLIP = False
-    print("WARNING: open_clip/torch not installed. Generating random axis vectors for development.")
-
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_FILE = ROOT / "data" / "taste_axes.json"
 DIMENSION = 512
+
+# Try OpenAI CLIP first (Azure CDN), then open_clip, then random fallback
+HAS_CLIP = False
+CLIP_SOURCE = None
+try:
+    import torch
+    import clip as openai_clip
+    HAS_CLIP = True
+    CLIP_SOURCE = "openai"
+except ImportError:
+    pass
+
+if not HAS_CLIP:
+    try:
+        import torch
+        import open_clip
+        HAS_CLIP = True
+        CLIP_SOURCE = "open_clip"
+    except ImportError:
+        pass
+
+if not HAS_CLIP:
+    print("WARNING: No CLIP package found. Generating random axis vectors.")
 
 # Each axis: (name, low_label, low_prompt, high_label, high_prompt)
 TASTE_AXES = [
@@ -125,16 +139,23 @@ TASTE_AXES = [
 
 
 def encode_texts(texts: list[str]):
-    model, _, _ = open_clip.create_model_and_transforms("ViT-L-14", pretrained="openai")
-    tokenizer = open_clip.get_tokenizer("ViT-L-14")
-    model.eval()
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = model.to(device)
-
-    tokens = tokenizer(texts).to(device)
-    with torch.no_grad():
-        features = model.encode_text(tokens)
-        features = features / features.norm(dim=-1, keepdim=True)
+    if CLIP_SOURCE == "openai":
+        model, _ = openai_clip.load("ViT-B/32", device=device)
+        model.eval()
+        tokens = openai_clip.tokenize(texts).to(device)
+        with torch.no_grad():
+            features = model.encode_text(tokens)
+            features = features / features.norm(dim=-1, keepdim=True)
+    else:
+        model, _, _ = open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai")
+        tokenizer = open_clip.get_tokenizer("ViT-B-32")
+        model.eval()
+        model = model.to(device)
+        tokens = tokenizer(texts).to(device)
+        with torch.no_grad():
+            features = model.encode_text(tokens)
+            features = features / features.norm(dim=-1, keepdim=True)
     return features.cpu().numpy()
 
 
@@ -147,13 +168,13 @@ def random_direction(seed: int) -> np.ndarray:
 def main():
     if HAS_CLIP:
         try:
-            print("Loading CLIP ViT-L/14 text encoder...")
+            print(f"Loading CLIP ViT-B/32 text encoder via {CLIP_SOURCE}...")
             all_texts = []
             for _, _, low_prompt, _, high_prompt in TASTE_AXES:
                 all_texts.extend([low_prompt, high_prompt])
             text_embeddings = encode_texts(all_texts)
         except Exception as e:
-            print(f"WARNING: CLIP text encoder failed to load ({e}). Falling back to random axis vectors.")
+            print(f"WARNING: CLIP text encoder failed ({e}). Falling back to random axis vectors.")
             text_embeddings = None
     else:
         text_embeddings = None
