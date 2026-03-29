@@ -156,7 +156,7 @@ export async function loadTasteState(sessionId: string): Promise<TasteVector> {
 
   // Cold start — try to load from Supabase
   try {
-    const { data } = await supabase
+    const { data } = await getSupabase()
       .from("taste_vectors")
       .select("*")
       .eq("session_id", sessionId)
@@ -263,7 +263,7 @@ export async function loadContextTasteState(sessionId: string, category: string)
 
   // Cold start — try to load from Supabase
   try {
-    const { data } = await supabase
+    const { data } = await getSupabase()
       .from("context_taste_vectors")
       .select("*")
       .eq("session_id", sessionId)
