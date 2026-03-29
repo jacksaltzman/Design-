@@ -15,10 +15,7 @@ export default function Home() {
     <div className="flex h-dvh flex-col">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-5">
-        <div className="flex items-baseline gap-3">
-          <h1 className="text-sm font-medium tracking-tight">Design Taste</h1>
-          <span className="text-xs text-[var(--muted)]">{swipeCount}</span>
-        </div>
+        <span className="text-xs text-[var(--muted)]">{swipeCount}</span>
         {swipeCount >= 5 && (
           <Link
             href="/profile"
