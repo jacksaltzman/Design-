@@ -3,10 +3,11 @@
  * Capture above-the-fold screenshots of curated design URLs using Playwright.
  *
  * Usage:
- *   npx playwright install chromium   # first time only
+ *   npx playwright install chromium        # first time only
  *   node scripts/capture_screenshots.js
- *   node scripts/capture_screenshots.js --mobile    # mobile viewport
- *   node scripts/capture_screenshots.js --limit 10  # first 10 only
+ *   node scripts/capture_screenshots.js --mobile         # mobile viewport
+ *   node scripts/capture_screenshots.js --limit 10       # first 10 only
+ *   node scripts/capture_screenshots.js --concurrency 8  # 8 parallel contexts (default 5)
  *
  * Reads URLs from scripts/urls.json
  * Saves screenshots to public/designs/
@@ -66,13 +67,14 @@ function slugify(url) {
     .slice(0, 80);
 }
 
-async function captureScreenshot(browser, entry, viewport, suffix) {
+async function captureScreenshot(browser, entry, viewport, suffix, progress) {
   const id = slugify(entry.url) + (suffix ? `-${suffix}` : "");
   const outputPath = path.join(OUTPUT_DIR, `${id}.jpeg`);
+  const label = `[${progress.current}/${progress.total}]`;
 
   // Skip if already captured
   if (fs.existsSync(outputPath)) {
-    console.log(`  SKIP ${id} (already exists)`);
+    console.log(`${label} SKIP ${id} (already exists)`);
     return { id, status: "skipped", entry };
   }
 
@@ -81,7 +83,6 @@ async function captureScreenshot(browser, entry, viewport, suffix) {
     deviceScaleFactor: 2, // Retina-quality captures
     locale: "en-US",
     timezoneId: "America/New_York",
-    // Block unnecessary resources to speed up loading
     bypassCSP: true,
   });
 
@@ -96,7 +97,7 @@ async function captureScreenshot(browser, entry, viewport, suffix) {
       timeout: 30000,
     });
 
-    // Wait for visual stability
+    // Wait for visual stability (minimum 2s per context, runs in parallel across batch)
     await page.waitForTimeout(2000);
 
     // Try to dismiss cookie banners
@@ -118,47 +119,73 @@ async function captureScreenshot(browser, entry, viewport, suffix) {
       },
     });
 
-    console.log(`  OK   ${id}`);
+    console.log(`${label} OK   ${id}`);
     await context.close();
     return { id, status: "ok", entry };
   } catch (err) {
-    console.log(`  FAIL ${id} — ${err.message.slice(0, 80)}`);
+    console.log(`${label} FAIL ${id} — ${err.message.slice(0, 80)}`);
     await context.close();
     return { id, status: "failed", error: err.message, entry };
   }
 }
 
+function chunkArray(arr, size) {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const isMobile = args.includes("--mobile");
+
   const limitIdx = args.indexOf("--limit");
   const limit = limitIdx !== -1 ? parseInt(args[limitIdx + 1], 10) : Infinity;
+
+  const concurrencyIdx = args.indexOf("--concurrency");
+  const concurrency = concurrencyIdx !== -1 ? parseInt(args[concurrencyIdx + 1], 10) : 5;
 
   const viewport = isMobile ? MOBILE_VIEWPORT : DESKTOP_VIEWPORT;
   const suffix = isMobile ? "mobile" : "";
 
   console.log(`\nCapture settings:`);
-  console.log(`  Viewport: ${viewport.width}×${viewport.height}${isMobile ? " (mobile)" : " (desktop)"}`);
-  console.log(`  Output: ${OUTPUT_DIR}`);
-  console.log(`  Scale: 2x (retina)\n`);
+  console.log(`  Viewport:    ${viewport.width}×${viewport.height}${isMobile ? " (mobile)" : " (desktop)"}`);
+  console.log(`  Output:      ${OUTPUT_DIR}`);
+  console.log(`  Scale:       2x (retina)`);
+  console.log(`  Concurrency: ${concurrency}\n`);
 
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
   const urls = JSON.parse(fs.readFileSync(URLS_FILE, "utf-8"));
   const toCapture = urls.slice(0, limit);
+  const total = toCapture.length;
 
-  console.log(`Capturing ${toCapture.length} URLs...\n`);
+  console.log(`Capturing ${total} URLs in batches of ${concurrency}...\n`);
 
   const browser = await chromium.launch({
     args: ["--disable-blink-features=AutomationControlled"],
   });
 
+  const batches = chunkArray(toCapture, concurrency);
   const results = [];
-  for (const entry of toCapture) {
-    const result = await captureScreenshot(browser, entry, viewport, suffix);
-    results.push(result);
-    // Be polite — 2s between requests
-    await new Promise((r) => setTimeout(r, 2000));
+  let completed = 0;
+
+  for (const batch of batches) {
+    // Assign progress counters before launching — all N in the batch run simultaneously
+    const batchWithProgress = batch.map((entry) => {
+      completed += 1;
+      return { entry, progress: { current: completed, total } };
+    });
+
+    const batchResults = await Promise.all(
+      batchWithProgress.map(({ entry, progress }) =>
+        captureScreenshot(browser, entry, viewport, suffix, progress)
+      )
+    );
+
+    results.push(...batchResults);
   }
 
   await browser.close();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import SwipeCard, { type SwipeCardHandle } from "./SwipeCard";
 import ProbeCard, { type ProbeCardHandle } from "./ProbeCard";
 import OnboardingGrid from "./OnboardingGrid";
@@ -55,6 +55,9 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
   const [cards, setCards] = useState<CardItem[]>([]);
   const [exhausted, setExhausted] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [lastSwipedDomain, setLastSwipedDomain] = useState<string | null>(null);
+  const [hasEverSwiped, setHasEverSwiped] = useState(false);
+  const domainTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const topCardRef = useRef<SwipeCardHandle | ProbeCardHandle | null>(null);
   const swipeCountRef = useRef(0);
@@ -189,6 +192,14 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
     return false;
   }, []);
 
+  // ── Domain reveal helper ──
+
+  const showDomain = useCallback((domain: string) => {
+    if (domainTimeoutRef.current) clearTimeout(domainTimeoutRef.current);
+    setLastSwipedDomain(domain);
+    domainTimeoutRef.current = setTimeout(() => setLastSwipedDomain(null), 1500);
+  }, []);
+
   // ── Swipe handlers ──
 
   const handleDesignSwipe = useCallback(
@@ -206,6 +217,9 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
         persist(data.taste, data.swipedIds);
       }
 
+      showDomain(designId);
+      setHasEverSwiped(true);
+
       swipesSinceDuel.current += 1;
       swipesSinceInterstitial.current += 1;
       swipesSinceProbe.current += 1;
@@ -219,7 +233,7 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
         if (newCard) setCards((prev) => [...prev, newCard]);
       }
     },
-    [fetchNext, onSwipeCountChange, persist, maybeChangeFlow, sessionHeaders]
+    [fetchNext, onSwipeCountChange, persist, maybeChangeFlow, sessionHeaders, showDomain]
   );
 
   const handleProbeSwipe = useCallback(
@@ -465,6 +479,28 @@ export default function CardStack({ onSwipeCountChange }: CardStackProps) {
               <path d="M13.9 3.1a3.5 3.5 0 0 0-4.95 0L8 4.05l-.95-.95a3.5 3.5 0 1 0-4.95 4.95l.95.95L8 13.95l4.95-4.95.95-.95a3.5 3.5 0 0 0 0-4.95z" />
             </svg>
           </button>
+
+          {/* Domain name reveal */}
+          <AnimatePresence>
+            {lastSwipedDomain && (
+              <motion.p
+                key={lastSwipedDomain}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="absolute bottom-[-28px] left-0 right-0 text-center text-xs text-[var(--muted)]"
+              >
+                {lastSwipedDomain}
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          {/* Keyboard hint — shown only before the first swipe */}
+          {!hasEverSwiped && swipeCountRef.current === 0 && flow.type === "swiping" && (
+            <p className="absolute bottom-[-44px] left-0 right-0 text-center text-[10px] text-[var(--muted)] opacity-40">
+              ← →
+            </p>
+          )}
         </div>
       )}
     </div>

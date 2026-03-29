@@ -53,19 +53,41 @@ export interface CandidateDesign {
 }
 
 /**
+ * Novelty score: how different a candidate is from everything already swiped.
+ *
+ * Returns 1 - maxCosineSimilarity, so 1.0 means completely novel and 0.0 means
+ * identical to something already seen. When allSwipedEmbeddings is empty
+ * (cold start), returns 1.0 for all candidates.
+ */
+export function noveltyScore(
+  embedding: number[],
+  allSwipedEmbeddings: number[][]
+): number {
+  if (allSwipedEmbeddings.length === 0) return 1.0;
+  let maxSim = -Infinity;
+  for (const swiped of allSwipedEmbeddings) {
+    const sim = cosineSimilarity(embedding, swiped);
+    if (sim > maxSim) maxSim = sim;
+  }
+  return 1 - maxSim;
+}
+
+/**
  * Select the next card to show via Thompson Sampling.
  *
  * @param taste - Current taste vector with uncertainty
  * @param candidates - All available designs with embeddings
  * @param recentEmbeddings - Embeddings of recently shown designs (for diversity)
  * @param alreadySwiped - Set of design IDs already swiped
+ * @param allSwipedEmbeddings - Embeddings of ALL swiped designs (for novelty bonus)
  * @returns The selected design ID, or null if no candidates remain
  */
 export function selectNextCard(
   taste: TasteVector,
   candidates: CandidateDesign[],
   recentEmbeddings: number[][],
-  alreadySwiped: Set<string>
+  alreadySwiped: Set<string>,
+  allSwipedEmbeddings: number[][] = []
 ): string | null {
   // Filter out already-swiped designs
   const available = candidates.filter((c) => !alreadySwiped.has(c.id));
@@ -82,7 +104,7 @@ export function selectNextCard(
     sampleNormal(w, taste.uncertainty[i])
   );
 
-  // Score each candidate
+  // Score each candidate: blend Thompson score with novelty bonus
   let bestId: string | null = null;
   let bestScore = -Infinity;
 
@@ -92,7 +114,9 @@ export function selectNextCard(
       continue;
     }
 
-    const score = sigmoid(dot(wSample, candidate.embedding));
+    const thompsonScore = sigmoid(dot(wSample, candidate.embedding));
+    const novelty = noveltyScore(candidate.embedding, allSwipedEmbeddings);
+    const score = 0.85 * thompsonScore + 0.15 * novelty;
 
     if (score > bestScore) {
       bestScore = score;
@@ -103,7 +127,9 @@ export function selectNextCard(
   // Fallback: if all candidates were filtered by diversity, just pick the best
   if (bestId === null && available.length > 0) {
     for (const candidate of available) {
-      const score = sigmoid(dot(wSample, candidate.embedding));
+      const thompsonScore = sigmoid(dot(wSample, candidate.embedding));
+      const novelty = noveltyScore(candidate.embedding, allSwipedEmbeddings);
+      const score = 0.85 * thompsonScore + 0.15 * novelty;
       if (score > bestScore) {
         bestScore = score;
         bestId = candidate.id;

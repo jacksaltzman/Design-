@@ -26,7 +26,7 @@ export default function ProfilePage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-between px-6 py-5">
-        <h1 className="text-sm font-medium tracking-tight">Your Taste</h1>
+        <h1 className="text-xs font-medium tracking-widest uppercase text-[var(--muted)]">Taste Profile</h1>
         <Link
           href="/"
           className="text-xs text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
@@ -35,11 +35,13 @@ export default function ProfilePage() {
         </Link>
       </header>
 
-      <main className="flex-1 px-6 pb-8">
+      <main className="flex-1 px-6 pb-8 pt-4">
         <div className="mx-auto max-w-xl">
           {loading ? (
             <div className="py-20 text-center text-sm text-[var(--muted)]">
-              Loading
+              <span className="animate-pulse" style={{ animationDelay: "0ms" }}>.</span>
+              <span className="animate-pulse" style={{ animationDelay: "200ms" }}>.</span>
+              <span className="animate-pulse" style={{ animationDelay: "400ms" }}>.</span>
             </div>
           ) : profile ? (
             <TasteProfileComponent

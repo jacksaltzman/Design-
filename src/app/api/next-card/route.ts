@@ -22,7 +22,12 @@ export async function GET(request: Request) {
     .map((id) => getEmbedding(id))
     .filter((e): e is number[] => e !== null);
 
-  const selectedId = selectNextCard(taste, candidates, recentEmbeddings, swiped);
+  // Get all swiped embeddings for the novelty/information-gain bonus
+  const allSwipedEmbeddings = Array.from(swiped)
+    .map((id) => getEmbedding(id))
+    .filter((e): e is number[] => e !== null);
+
+  const selectedId = selectNextCard(taste, candidates, recentEmbeddings, swiped, allSwipedEmbeddings);
 
   if (!selectedId) {
     return NextResponse.json(
