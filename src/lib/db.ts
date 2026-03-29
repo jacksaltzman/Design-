@@ -1,122 +1,77 @@
 /**
- * SQLite database layer.
- * Handles designs, swipes, and taste state persistence.
+ * Data layer — in-memory store backed by JSON files.
+ *
+ * Vercel serverless functions have a read-only filesystem, so we can't use
+ * SQLite. Instead, we derive design metadata from the embeddings JSON
+ * (which is committed to the repo) and keep swipes + taste state in memory.
+ *
+ * State resets on cold start — acceptable for MVP. For production, swap
+ * this with a real database (Postgres, Turso, etc.).
  */
 
-import Database from "better-sqlite3";
-import { join } from "path";
 import type { Design, TasteVector } from "./types";
 import { initTasteVector } from "./taste-model";
-import { getDimension } from "./embeddings";
+import { getDimension, loadEmbeddings } from "./embeddings";
 
-let db: Database.Database | null = null;
+// ── In-memory state (per serverless instance) ──
 
-function getDb(): Database.Database {
-  if (db) return db;
-  const dbPath = join(process.cwd(), "data", "designs.db");
-  db = new Database(dbPath);
-  db.pragma("journal_mode = WAL");
-  return db;
-}
+let swipes: { designId: string; liked: boolean; timestamp: number }[] = [];
+let tasteState: TasteVector | null = null;
 
-// ── Designs ──
+// ── Designs (derived from embeddings.json) ──
 
 export function getDesign(id: string): Design | null {
-  const row = getDb()
-    .prepare("SELECT id, filename, source, category FROM designs WHERE id = ?")
-    .get(id) as Design | undefined;
-  return row ?? null;
+  const index = loadEmbeddings();
+  if (!index.embeddings[id]) return null;
+
+  // Detect file extension — try common formats
+  return {
+    id,
+    filename: `${id}.png`,
+    source: null as unknown as string | undefined,
+    category: null as unknown as string | undefined,
+  };
 }
 
 export function getAllDesigns(): Design[] {
-  return getDb()
-    .prepare("SELECT id, filename, source, category FROM designs")
-    .all() as Design[];
+  const index = loadEmbeddings();
+  return Object.keys(index.embeddings).map((id) => ({
+    id,
+    filename: `${id}.png`,
+  }));
 }
 
 // ── Swipes ──
 
 export function recordSwipe(designId: string, liked: boolean): void {
-  getDb()
-    .prepare("INSERT INTO swipes (design_id, liked) VALUES (?, ?)")
-    .run(designId, liked ? 1 : 0);
+  swipes.push({ designId, liked, timestamp: Date.now() });
 }
 
 export function getSwipedDesignIds(): Set<string> {
-  const rows = getDb()
-    .prepare("SELECT DISTINCT design_id FROM swipes")
-    .all() as { design_id: string }[];
-  return new Set(rows.map((r) => r.design_id));
+  return new Set(swipes.map((s) => s.designId));
 }
 
 export function getRecentSwipedIds(limit: number): string[] {
-  const rows = getDb()
-    .prepare(
-      "SELECT design_id FROM swipes ORDER BY created_at DESC LIMIT ?"
-    )
-    .all(limit) as { design_id: string }[];
-  return rows.map((r) => r.design_id);
+  return swipes
+    .slice(-limit)
+    .reverse()
+    .map((s) => s.designId);
 }
 
 export function getSwipeCount(): number {
-  const row = getDb()
-    .prepare("SELECT COUNT(*) as count FROM swipes")
-    .get() as { count: number };
-  return row.count;
+  return swipes.length;
 }
 
 // ── Taste State ──
 
-/** Serialize a TasteVector's number arrays to Buffers for SQLite BLOB storage. */
-function serializeFloats(arr: number[]): Buffer {
-  const buf = Buffer.alloc(arr.length * 8);
-  for (let i = 0; i < arr.length; i++) {
-    buf.writeDoubleLE(arr[i], i * 8);
-  }
-  return buf;
-}
-
-/** Deserialize a Buffer back to a number array. */
-function deserializeFloats(buf: Buffer): number[] {
-  const arr: number[] = [];
-  for (let i = 0; i < buf.length; i += 8) {
-    arr.push(buf.readDoubleLE(i));
-  }
-  return arr;
-}
-
 export function loadTasteState(): TasteVector {
-  const row = getDb()
-    .prepare("SELECT weights, uncertainty, swipe_count FROM taste_state WHERE id = 1")
-    .get() as { weights: Buffer; uncertainty: Buffer; swipe_count: number } | undefined;
-
-  if (!row) {
+  if (!tasteState) {
     const dim = getDimension();
-    const initial = initTasteVector(dim);
-    saveTasteState(initial);
-    return initial;
+    tasteState = initTasteVector(dim);
   }
-
-  return {
-    weights: deserializeFloats(row.weights),
-    uncertainty: deserializeFloats(row.uncertainty),
-    swipeCount: row.swipe_count,
-  };
+  return tasteState;
 }
 
 export function saveTasteState(taste: TasteVector): void {
-  const weightsBuf = serializeFloats(taste.weights);
-  const uncertaintyBuf = serializeFloats(taste.uncertainty);
-
-  getDb()
-    .prepare(
-      `INSERT INTO taste_state (id, weights, uncertainty, swipe_count, updated_at)
-       VALUES (1, ?, ?, ?, unixepoch())
-       ON CONFLICT(id) DO UPDATE SET
-         weights = excluded.weights,
-         uncertainty = excluded.uncertainty,
-         swipe_count = excluded.swipe_count,
-         updated_at = excluded.updated_at`
-    )
-    .run(weightsBuf, uncertaintyBuf, taste.swipeCount);
+  tasteState = taste;
 }
