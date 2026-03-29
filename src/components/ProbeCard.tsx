@@ -121,7 +121,7 @@ const ProbeCard = forwardRef<ProbeCardHandle, ProbeCardProps>(
               opacity: { duration: 0.15, delay: 0.05 },
             },
           });
-          setTimeout(() => onSwipe(probeId, swipedRight), 150);
+          onSwipe(probeId, swipedRight);
         } else {
           controls.start({
             x: 0,
@@ -148,12 +148,14 @@ const ProbeCard = forwardRef<ProbeCardHandle, ProbeCardProps>(
           scale: isTop ? 1 : bgScale,
           y: isTop ? 0 : bgY,
         }}
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        initial={false}
         animate={{
+          scale: isTop ? 1 : 1 - stackIndex * 0.03,
+          y: isTop ? 0 : stackIndex * 6,
           opacity: stackIndex > 2 ? 0 : 1,
-          transition: { duration: 0.25 },
+          transition: { type: "spring", stiffness: 500, damping: 35 },
         }}
-        exit={{ opacity: 0, transition: { duration: 0.12 } }}
+        exit={{ opacity: 0, transition: { duration: 0.1 } }}
       >
         <motion.div
           data-card
