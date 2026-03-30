@@ -47,7 +47,7 @@ export default function OnboardingGrid({ onComplete }: OnboardingGridProps) {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (selected.size === 0 || submitting) return;
+    if (submitting) return;
     setSubmitting(true);
 
     const sid = getSessionId();
@@ -89,7 +89,7 @@ export default function OnboardingGrid({ onComplete }: OnboardingGridProps) {
     <div className="flex h-full flex-col">
       <div className="px-6 pb-4 pt-2">
         <p className="text-sm text-[var(--foreground)]">
-          Tap the designs you&apos;re drawn to
+          Tap any you&apos;re drawn to
         </p>
       </div>
 
@@ -130,10 +130,10 @@ export default function OnboardingGrid({ onComplete }: OnboardingGridProps) {
       <div className="px-6 py-5">
         <button
           onClick={handleSubmit}
-          disabled={selected.size === 0 || submitting}
+          disabled={submitting}
           className="w-full rounded-lg bg-[var(--foreground)] py-2.5 text-xs font-medium text-[var(--background)] transition-opacity disabled:opacity-20"
         >
-          {submitting ? "..." : "Continue"}
+          {submitting ? "..." : selected.size === 0 ? "Skip →" : "Continue"}
         </button>
       </div>
     </div>
