@@ -1,35 +1,18 @@
 import { NextResponse } from "next/server";
-import { statSync } from "fs";
-import { join } from "path";
 import { getAllCandidates } from "@/lib/embeddings";
 import { getDesign } from "@/lib/db";
-
-const MIN_IMAGE_BYTES = 50_000; // designs smaller than ~50KB are likely broken/blank
-
-function isImageHealthy(filename: string): boolean {
-  try {
-    const filePath = join(process.cwd(), "public", "designs", filename);
-    const { size } = statSync(filePath);
-    return size >= MIN_IMAGE_BYTES;
-  } catch {
-    return false;
-  }
-}
 
 export const dynamic = "force-dynamic";
 
 /**
  * Return 9 maximally diverse designs for the onboarding grid.
  * Uses greedy farthest-point sampling to spread across the embedding space.
+ * Broken/blank screenshots are pre-filtered out of embeddings.json.
  */
 export async function GET() {
   const allCandidates = getAllCandidates();
 
-  // Filter out broken/blank screenshots before diversity sampling
-  const candidates = allCandidates.filter((c) => {
-    const d = getDesign(c.id);
-    return d ? isImageHealthy(d.filename) : false;
-  });
+  const candidates = allCandidates.filter((c) => getDesign(c.id) !== null);
 
   if (candidates.length < 9) {
     // Not enough designs — return what we have
