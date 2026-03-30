@@ -167,28 +167,6 @@
     ]
   },
   {
-    "id": "acquadiparma.com",
-    "filename": "acquadiparma.com.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "ecommerce",
-    "tags": [
-      "fragrance",
-      "italian"
-    ]
-  },
-  {
-    "id": "acre.tv",
-    "filename": "acre.tv.jpeg",
-    "category": "indie",
-    "region": "us",
-    "format": "portfolio",
-    "tags": [
-      "photography",
-      "no-scroll"
-    ]
-  },
-  {
     "id": "active-theory.com",
     "filename": "active-theory.com.jpeg",
     "category": "immersive",
@@ -210,19 +188,6 @@
       "subscriptions",
       "dark mode",
       "mobile"
-    ]
-  },
-  {
-    "id": "adept.ai",
-    "filename": "adept.ai.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "automation",
-      "clean",
-      "dark mode"
     ]
   },
   {
@@ -248,18 +213,6 @@
       "web framework",
       "dark mode",
       "TypeScript"
-    ]
-  },
-  {
-    "id": "aesop.com",
-    "filename": "aesop.com.jpeg",
-    "category": "minimalist",
-    "region": "au",
-    "format": "ecommerce",
-    "tags": [
-      "beauty",
-      "typographic",
-      "editorial"
     ]
   },
   {
@@ -418,19 +371,6 @@
     "tags": [
       "french",
       "casual-luxury"
-    ]
-  },
-  {
-    "id": "amplenote.com",
-    "filename": "amplenote.com.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "productivity",
-      "notes",
-      "clean",
-      "tasks"
     ]
   },
   {
@@ -684,17 +624,6 @@
     ]
   },
   {
-    "id": "arket.com",
-    "filename": "arket.com.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "ecommerce",
-    "tags": [
-      "scandinavian",
-      "basics"
-    ]
-  },
-  {
     "id": "artbasel.com",
     "filename": "artbasel.com.jpeg",
     "category": "minimalist",
@@ -703,18 +632,6 @@
     "tags": [
       "art-fair",
       "swiss"
-    ]
-  },
-  {
-    "id": "artek.fi",
-    "filename": "artek.fi.jpeg",
-    "category": "minimalist",
-    "region": "fi",
-    "format": "ecommerce",
-    "tags": [
-      "furniture",
-      "aalto",
-      "modernist"
     ]
   },
   {
@@ -854,19 +771,6 @@
     ]
   },
   {
-    "id": "bambulab.com",
-    "filename": "bambulab.com.jpeg",
-    "category": "minimalist",
-    "region": "other",
-    "format": "ecommerce",
-    "tags": [
-      "hardware",
-      "3D printing",
-      "dark mode",
-      "Chinese"
-    ]
-  },
-  {
     "id": "barbican.org.uk",
     "filename": "barbican.org.uk.jpeg",
     "category": "editorial",
@@ -899,30 +803,6 @@
     "tags": [
       "studio",
       "motion"
-    ]
-  },
-  {
-    "id": "basecamp.com",
-    "filename": "basecamp.com.jpeg",
-    "category": "expressive",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "project management",
-      "illustrated",
-      "editorial",
-      "playful"
-    ]
-  },
-  {
-    "id": "basement.studio",
-    "filename": "basement.studio.jpeg",
-    "category": "indie",
-    "region": "ar",
-    "format": "portfolio",
-    "tags": [
-      "studio",
-      "creative"
     ]
   },
   {
@@ -986,17 +866,6 @@
       "newsletter",
       "dark mode",
       "clean"
-    ]
-  },
-  {
-    "id": "berkeleygraphics.com",
-    "filename": "berkeleygraphics.com.jpeg",
-    "category": "brutalist",
-    "region": "us",
-    "format": "portfolio",
-    "tags": [
-      "studio",
-      "raw"
     ]
   },
   {
@@ -1267,19 +1136,6 @@
     ]
   },
   {
-    "id": "canva.com",
-    "filename": "canva.com.jpeg",
-    "category": "expressive",
-    "region": "au",
-    "format": "marketing",
-    "tags": [
-      "design tool",
-      "colorful",
-      "consumer",
-      "Australian"
-    ]
-  },
-  {
     "id": "capacities.io",
     "filename": "capacities.io.jpeg",
     "category": "minimalist",
@@ -1303,19 +1159,6 @@
       "video captions",
       "dark mode",
       "mobile"
-    ]
-  },
-  {
-    "id": "carta.com",
-    "filename": "carta.com.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "fintech",
-      "equity management",
-      "dark mode",
-      "clean"
     ]
   },
   {
@@ -1367,18 +1210,6 @@
     ]
   },
   {
-    "id": "celine.com",
-    "filename": "celine.com.jpeg",
-    "category": "minimalist",
-    "region": "fr",
-    "format": "ecommerce",
-    "tags": [
-      "fashion",
-      "luxury",
-      "restrained"
-    ]
-  },
-  {
     "id": "census.dev",
     "filename": "census.dev.jpeg",
     "category": "minimalist",
@@ -1414,18 +1245,6 @@
       "component library",
       "teal",
       "clean"
-    ]
-  },
-  {
-    "id": "chanel.com",
-    "filename": "chanel.com.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "ecommerce",
-    "tags": [
-      "luxury",
-      "french",
-      "iconic"
     ]
   },
   {
@@ -1490,32 +1309,6 @@
       "heatmaps",
       "Microsoft",
       "free"
-    ]
-  },
-  {
-    "id": "classpass.com",
-    "filename": "classpass.com.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "wellness",
-      "dark mode",
-      "fitness",
-      "marketplace"
-    ]
-  },
-  {
-    "id": "claude.ai",
-    "filename": "claude.ai.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "chat",
-      "clean",
-      "Anthropic"
     ]
   },
   {
@@ -1609,19 +1402,6 @@
     ]
   },
   {
-    "id": "climatetrade.com",
-    "filename": "climatetrade.com.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "marketing",
-    "tags": [
-      "climate tech",
-      "carbon marketplace",
-      "dark mode",
-      "blockchain"
-    ]
-  },
-  {
     "id": "cloverly.com",
     "filename": "cloverly.com.jpeg",
     "category": "minimalist",
@@ -1696,19 +1476,6 @@
       "coral",
       "clean",
       "enterprise NLP"
-    ]
-  },
-  {
-    "id": "collective.work",
-    "filename": "collective.work.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "freelance",
-      "clean",
-      "dark mode",
-      "creative platform"
     ]
   },
   {
@@ -1855,19 +1622,6 @@
       "sustainability",
       "dark mode",
       "Dutch"
-    ]
-  },
-  {
-    "id": "copilot.microsoft.com",
-    "filename": "copilot.microsoft.com.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "chat",
-      "Microsoft",
-      "clean"
     ]
   },
   {
@@ -2298,18 +2052,6 @@
     ]
   },
   {
-    "id": "designweek.co.uk",
-    "filename": "designweek.co.uk.jpeg",
-    "category": "editorial",
-    "region": "uk",
-    "format": "editorial",
-    "tags": [
-      "design",
-      "industry",
-      "news"
-    ]
-  },
-  {
     "id": "dezeen.com",
     "filename": "dezeen.com.jpeg",
     "category": "editorial",
@@ -2344,17 +2086,6 @@
       "foundation",
       "minimalism",
       "land-art"
-    ]
-  },
-  {
-    "id": "dior.com",
-    "filename": "dior.com.jpeg",
-    "category": "editorial",
-    "region": "eu",
-    "format": "ecommerce",
-    "tags": [
-      "luxury",
-      "french"
     ]
   },
   {
@@ -2493,19 +2224,6 @@
     ]
   },
   {
-    "id": "drata.com",
-    "filename": "drata.com.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "compliance",
-      "SOC2",
-      "dark mode",
-      "enterprise"
-    ]
-  },
-  {
     "id": "dries-van-noten.com",
     "filename": "dries-van-noten.com.jpeg",
     "category": "expressive",
@@ -2603,18 +2321,6 @@
     ]
   },
   {
-    "id": "e15.com",
-    "filename": "e15.com.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "ecommerce",
-    "tags": [
-      "furniture",
-      "german",
-      "contemporary"
-    ]
-  },
-  {
     "id": "ecal.ch",
     "filename": "ecal.ch.jpeg",
     "category": "editorial",
@@ -2662,18 +2368,6 @@
       "TypeScript",
       "dark mode",
       "clean"
-    ]
-  },
-  {
-    "id": "eiga.co.uk",
-    "filename": "eiga.co.uk.jpeg",
-    "category": "minimalist",
-    "region": "uk",
-    "format": "portfolio",
-    "tags": [
-      "branding",
-      "motion",
-      "identity"
     ]
   },
   {
@@ -2880,18 +2574,6 @@
     ]
   },
   {
-    "id": "feixen.com",
-    "filename": "feixen.com.jpeg",
-    "category": "expressive",
-    "region": "eu",
-    "format": "portfolio",
-    "tags": [
-      "swiss design",
-      "graphic design",
-      "illustration"
-    ]
-  },
-  {
     "id": "fermliving.com",
     "filename": "fermliving.com.jpeg",
     "category": "minimalist",
@@ -3041,18 +2723,6 @@
     ]
   },
   {
-    "id": "fondationlouisvuitton.fr",
-    "filename": "fondationlouisvuitton.fr.jpeg",
-    "category": "expressive",
-    "region": "eu",
-    "format": "editorial",
-    "tags": [
-      "foundation",
-      "french",
-      "Gehry"
-    ]
-  },
-  {
     "id": "fontpair.co",
     "filename": "fontpair.co.jpeg",
     "category": "minimalist",
@@ -3128,17 +2798,6 @@
     ]
   },
   {
-    "id": "formless.xyz",
-    "filename": "formless.xyz.jpeg",
-    "category": "brutalist",
-    "region": "us",
-    "format": "experimental",
-    "tags": [
-      "community",
-      "creative"
-    ]
-  },
-  {
     "id": "formsort.com",
     "filename": "formsort.com.jpeg",
     "category": "minimalist",
@@ -3173,19 +2832,6 @@
       "interiors",
       "spatial",
       "magazine"
-    ]
-  },
-  {
-    "id": "framer.com-sites",
-    "filename": "framer.com-sites.jpeg",
-    "category": "expressive",
-    "region": "eu",
-    "format": "marketing",
-    "tags": [
-      "no-code",
-      "web design",
-      "bold",
-      "interactive"
     ]
   },
   {
@@ -3226,18 +2872,6 @@
     ]
   },
   {
-    "id": "fredericmalle.com",
-    "filename": "fredericmalle.com.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "ecommerce",
-    "tags": [
-      "fragrance",
-      "french",
-      "niche"
-    ]
-  },
-  {
     "id": "freetrade.io",
     "filename": "freetrade.io.jpeg",
     "category": "minimalist",
@@ -3260,19 +2894,6 @@
       "art-fair",
       "editorial",
       "contemporary"
-    ]
-  },
-  {
-    "id": "frog.co",
-    "filename": "frog.co.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "design consultancy",
-      "dark mode",
-      "editorial",
-      "clean"
     ]
   },
   {
@@ -3336,19 +2957,6 @@
       "gallery",
       "NYC",
       "contemporary"
-    ]
-  },
-  {
-    "id": "gamma.app",
-    "filename": "gamma.app.jpeg",
-    "category": "expressive",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "presentations",
-      "purple",
-      "bold"
     ]
   },
   {
@@ -3451,18 +3059,6 @@
     ]
   },
   {
-    "id": "givenchy.com",
-    "filename": "givenchy.com.jpeg",
-    "category": "minimalist",
-    "region": "fr",
-    "format": "ecommerce",
-    "tags": [
-      "fashion",
-      "luxury",
-      "austere"
-    ]
-  },
-  {
     "id": "glean.com",
     "filename": "glean.com.jpeg",
     "category": "minimalist",
@@ -3520,19 +3116,6 @@
     "tags": [
       "interiors",
       "art-direction"
-    ]
-  },
-  {
-    "id": "gopro.com",
-    "filename": "gopro.com.jpeg",
-    "category": "expressive",
-    "region": "us",
-    "format": "ecommerce",
-    "tags": [
-      "hardware",
-      "cameras",
-      "bold",
-      "action sports"
     ]
   },
   {
@@ -3646,19 +3229,6 @@
     ]
   },
   {
-    "id": "haiku.ai",
-    "filename": "haiku.ai.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "design",
-      "dark mode",
-      "animation"
-    ]
-  },
-  {
     "id": "harmonic.ai",
     "filename": "harmonic.ai.jpeg",
     "category": "minimalist",
@@ -3710,17 +3280,6 @@
     ]
   },
   {
-    "id": "hauserwirth.com",
-    "filename": "hauserwirth.com.jpeg",
-    "category": "editorial",
-    "region": "uk",
-    "format": "editorial",
-    "tags": [
-      "gallery",
-      "international"
-    ]
-  },
-  {
     "id": "headspace.com",
     "filename": "headspace.com.jpeg",
     "category": "illustration",
@@ -3744,18 +3303,6 @@
     ]
   },
   {
-    "id": "hellomonday.com",
-    "filename": "hellomonday.com.jpeg",
-    "category": "expressive",
-    "region": "eu",
-    "format": "portfolio",
-    "tags": [
-      "interactive",
-      "award-winning",
-      "motion"
-    ]
-  },
-  {
     "id": "helmo.fr",
     "filename": "helmo.fr.jpeg",
     "category": "illustrative",
@@ -3765,18 +3312,6 @@
       "illustration",
       "studio",
       "poster"
-    ]
-  },
-  {
-    "id": "hermanmiller.com",
-    "filename": "hermanmiller.com.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "ecommerce",
-    "tags": [
-      "furniture",
-      "american",
-      "Eames"
     ]
   },
   {
@@ -4063,19 +3598,6 @@
     ]
   },
   {
-    "id": "ideogram.ai",
-    "filename": "ideogram.ai.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "image generation",
-      "text-in-image",
-      "clean"
-    ]
-  },
-  {
     "id": "iittala.com",
     "filename": "iittala.com.jpeg",
     "category": "minimalist",
@@ -4153,19 +3675,6 @@
     ]
   },
   {
-    "id": "insta360.com",
-    "filename": "insta360.com.jpeg",
-    "category": "minimalist",
-    "region": "other",
-    "format": "ecommerce",
-    "tags": [
-      "hardware",
-      "cameras",
-      "dark mode",
-      "Chinese"
-    ]
-  },
-  {
     "id": "instrument.com",
     "filename": "instrument.com.jpeg",
     "category": "minimalist",
@@ -4198,18 +3707,6 @@
       "curated",
       "creative",
       "editorial"
-    ]
-  },
-  {
-    "id": "jacquemus.com",
-    "filename": "jacquemus.com.jpeg",
-    "category": "editorial",
-    "region": "fr",
-    "format": "ecommerce",
-    "tags": [
-      "fashion",
-      "playful",
-      "art-direction"
     ]
   },
   {
@@ -4385,19 +3882,6 @@
     ]
   },
   {
-    "id": "kanpai.app",
-    "filename": "kanpai.app.jpeg",
-    "category": "minimalist",
-    "region": "jp",
-    "format": "marketing",
-    "tags": [
-      "productivity",
-      "Japanese",
-      "clean",
-      "scheduling"
-    ]
-  },
-  {
     "id": "kapwing.com",
     "filename": "kapwing.com.jpeg",
     "category": "expressive",
@@ -4420,18 +3904,6 @@
       "furniture",
       "plastic",
       "colorful"
-    ]
-  },
-  {
-    "id": "kenzo.com",
-    "filename": "kenzo.com.jpeg",
-    "category": "maximalist",
-    "region": "fr",
-    "format": "ecommerce",
-    "tags": [
-      "fashion",
-      "graphic",
-      "bold"
     ]
   },
   {
@@ -4836,18 +4308,6 @@
     ]
   },
   {
-    "id": "letteringco.com",
-    "filename": "letteringco.com.jpeg",
-    "category": "typographic",
-    "region": "us",
-    "format": "portfolio",
-    "tags": [
-      "lettering",
-      "custom-type",
-      "studio"
-    ]
-  },
-  {
     "id": "letterspace.amsterdam",
     "filename": "letterspace.amsterdam.jpeg",
     "category": "typographic",
@@ -5074,32 +4534,6 @@
     ]
   },
   {
-    "id": "lottiefiles.com",
-    "filename": "lottiefiles.com.jpeg",
-    "category": "expressive",
-    "region": "other",
-    "format": "marketing",
-    "tags": [
-      "animation",
-      "colorful",
-      "creative tool",
-      "clean"
-    ]
-  },
-  {
-    "id": "luma.ai",
-    "filename": "luma.ai.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "3D",
-      "dark mode",
-      "video"
-    ]
-  },
-  {
     "id": "lumalabs.ai",
     "filename": "lumalabs.ai.jpeg",
     "category": "minimalist",
@@ -5110,19 +4544,6 @@
       "3D",
       "dark mode",
       "video generation"
-    ]
-  },
-  {
-    "id": "lunacy.app",
-    "filename": "lunacy.app.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "marketing",
-    "tags": [
-      "design tool",
-      "Windows",
-      "dark mode",
-      "clean"
     ]
   },
   {
@@ -5245,18 +4666,6 @@
     ]
   },
   {
-    "id": "marimekko.com",
-    "filename": "marimekko.com.jpeg",
-    "category": "playful",
-    "region": "fi",
-    "format": "ecommerce",
-    "tags": [
-      "textile",
-      "pattern",
-      "bold"
-    ]
-  },
-  {
     "id": "marni.com",
     "filename": "marni.com.jpeg",
     "category": "playful",
@@ -5266,17 +4675,6 @@
       "fashion",
       "colorful",
       "illustration"
-    ]
-  },
-  {
-    "id": "mast.co",
-    "filename": "mast.co.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "ecommerce",
-    "tags": [
-      "chocolate",
-      "craft"
     ]
   },
   {
@@ -5400,18 +4798,6 @@
     "tags": [
       "fragrance",
       "luxury"
-    ]
-  },
-  {
-    "id": "midjourney.com",
-    "filename": "midjourney.com.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "dark",
-      "image generation"
     ]
   },
   {
@@ -5619,19 +5005,6 @@
     ]
   },
   {
-    "id": "moonpay.com",
-    "filename": "moonpay.com.jpeg",
-    "category": "minimalist",
-    "region": "uk",
-    "format": "marketing",
-    "tags": [
-      "fintech",
-      "crypto payments",
-      "dark mode",
-      "clean"
-    ]
-  },
-  {
     "id": "moooi.com",
     "filename": "moooi.com.jpeg",
     "category": "maximalist",
@@ -5802,18 +5175,6 @@
     ]
   },
   {
-    "id": "nalindesign.com",
-    "filename": "nalindesign.com.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "portfolio",
-    "tags": [
-      "designer",
-      "product",
-      "clean"
-    ]
-  },
-  {
     "id": "nansen.ai",
     "filename": "nansen.ai.jpeg",
     "category": "minimalist",
@@ -5887,17 +5248,6 @@
     ]
   },
   {
-    "id": "net-a-porter.com",
-    "filename": "net-a-porter.com.jpeg",
-    "category": "minimalist",
-    "region": "uk",
-    "format": "ecommerce",
-    "tags": [
-      "luxury",
-      "multi-brand"
-    ]
-  },
-  {
     "id": "nextra.site",
     "filename": "nextra.site.jpeg",
     "category": "minimalist",
@@ -5921,19 +5271,6 @@
       "tunneling",
       "dark mode",
       "clean"
-    ]
-  },
-  {
-    "id": "nivo.rocks",
-    "filename": "nivo.rocks.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "marketing",
-    "tags": [
-      "developer tool",
-      "charts",
-      "dark mode",
-      "open source"
     ]
   },
   {
@@ -5970,17 +5307,6 @@
       "fine dining",
       "nordic",
       "restaurant"
-    ]
-  },
-  {
-    "id": "nomadhotels.com",
-    "filename": "nomadhotels.com.jpeg",
-    "category": "editorial",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "hospitality",
-      "boutique hotel"
     ]
   },
   {
@@ -6021,18 +5347,6 @@
     ]
   },
   {
-    "id": "normann-copenhagen.com",
-    "filename": "normann-copenhagen.com.jpeg",
-    "category": "minimalist",
-    "region": "dk",
-    "format": "ecommerce",
-    "tags": [
-      "furniture",
-      "scandinavian",
-      "clean"
-    ]
-  },
-  {
     "id": "normarchitects.com",
     "filename": "normarchitects.com.jpeg",
     "category": "minimalist",
@@ -6042,31 +5356,6 @@
       "danish design",
       "architecture",
       "nordic"
-    ]
-  },
-  {
-    "id": "normative.io",
-    "filename": "normative.io.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "marketing",
-    "tags": [
-      "climate tech",
-      "carbon accounting",
-      "dark mode",
-      "Swedish"
-    ]
-  },
-  {
-    "id": "northkingdom.com",
-    "filename": "northkingdom.com.jpeg",
-    "category": "expressive",
-    "region": "eu",
-    "format": "portfolio",
-    "tags": [
-      "interactive",
-      "award-winning",
-      "storytelling"
     ]
   },
   {
@@ -6425,19 +5714,6 @@
     ]
   },
   {
-    "id": "panasonic.net",
-    "filename": "panasonic.net.jpeg",
-    "category": "minimalist",
-    "region": "jp",
-    "format": "marketing",
-    "tags": [
-      "hardware",
-      "electronics",
-      "clean",
-      "Japanese"
-    ]
-  },
-  {
     "id": "paperform.co",
     "filename": "paperform.co.jpeg",
     "category": "minimalist",
@@ -6526,19 +5802,6 @@
     ]
   },
   {
-    "id": "perplexity.ai",
-    "filename": "perplexity.ai.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "search",
-      "dark mode",
-      "clean"
-    ]
-  },
-  {
     "id": "persefoni.com",
     "filename": "persefoni.com.jpeg",
     "category": "minimalist",
@@ -6560,18 +5823,6 @@
     "tags": [
       "publishing",
       "art books"
-    ]
-  },
-  {
-    "id": "phantom.land",
-    "filename": "phantom.land.jpeg",
-    "category": "experimental",
-    "region": "in",
-    "format": "agency",
-    "tags": [
-      "studio",
-      "interactive",
-      "india"
     ]
   },
   {
@@ -6609,19 +5860,6 @@
     "tags": [
       "saas",
       "presentations"
-    ]
-  },
-  {
-    "id": "pitchbook.com",
-    "filename": "pitchbook.com.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "fintech",
-      "PE/VC data",
-      "dark mode",
-      "enterprise"
     ]
   },
   {
@@ -6849,18 +6087,6 @@
     ]
   },
   {
-    "id": "projectgraphics.eu",
-    "filename": "projectgraphics.eu.jpeg",
-    "category": "editorial",
-    "region": "se",
-    "format": "portfolio",
-    "tags": [
-      "graphic-design",
-      "nordic",
-      "cultural"
-    ]
-  },
-  {
     "id": "prusa3d.com",
     "filename": "prusa3d.com.jpeg",
     "category": "minimalist",
@@ -6998,17 +6224,6 @@
       "expense management",
       "green",
       "clean"
-    ]
-  },
-  {
-    "id": "rapha.cc",
-    "filename": "rapha.cc.jpeg",
-    "category": "minimalist",
-    "region": "uk",
-    "format": "ecommerce",
-    "tags": [
-      "sport",
-      "cycling"
     ]
   },
   {
@@ -7252,19 +6467,6 @@
     ]
   },
   {
-    "id": "revolut.com",
-    "filename": "revolut.com.jpeg",
-    "category": "minimalist",
-    "region": "uk",
-    "format": "marketing",
-    "tags": [
-      "fintech",
-      "dark mode",
-      "premium",
-      "neobank"
-    ]
-  },
-  {
     "id": "rickowens.eu",
     "filename": "rickowens.eu.jpeg",
     "category": "brutalist",
@@ -7412,19 +6614,6 @@
       "3D mockups",
       "dark mode",
       "Mac"
-    ]
-  },
-  {
-    "id": "rows.com",
-    "filename": "rows.com.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "marketing",
-    "tags": [
-      "spreadsheet",
-      "data",
-      "clean",
-      "dark mode"
     ]
   },
   {
@@ -7740,17 +6929,6 @@
     ]
   },
   {
-    "id": "sezane.com",
-    "filename": "sezane.com.jpeg",
-    "category": "editorial",
-    "region": "eu",
-    "format": "ecommerce",
-    "tags": [
-      "french",
-      "feminine"
-    ]
-  },
-  {
     "id": "sfmoma.org",
     "filename": "sfmoma.org.jpeg",
     "category": "minimalist",
@@ -7773,30 +6951,6 @@
       "component library",
       "dark mode",
       "clean"
-    ]
-  },
-  {
-    "id": "sharp.net",
-    "filename": "sharp.net.jpeg",
-    "category": "minimalist",
-    "region": "jp",
-    "format": "marketing",
-    "tags": [
-      "hardware",
-      "electronics",
-      "clean",
-      "Japanese"
-    ]
-  },
-  {
-    "id": "shiseido.co.jp",
-    "filename": "shiseido.co.jp.jpeg",
-    "category": "japanese",
-    "region": "jp",
-    "format": "marketing",
-    "tags": [
-      "beauty",
-      "heritage"
     ]
   },
   {
@@ -7984,32 +7138,6 @@
       "audio",
       "dark mode",
       "premium"
-    ]
-  },
-  {
-    "id": "sony.com-en",
-    "filename": "sony.com-en.jpeg",
-    "category": "minimalist",
-    "region": "jp",
-    "format": "ecommerce",
-    "tags": [
-      "hardware",
-      "electronics",
-      "dark mode",
-      "Japanese"
-    ]
-  },
-  {
-    "id": "sora.com",
-    "filename": "sora.com.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "video generation",
-      "OpenAI",
-      "dark mode"
     ]
   },
   {
@@ -8248,19 +7376,6 @@
       "home goods",
       "danish",
       "tableware"
-    ]
-  },
-  {
-    "id": "stinkstudios.com",
-    "filename": "stinkstudios.com.jpeg",
-    "category": "expressive",
-    "region": "us",
-    "format": "portfolio",
-    "tags": [
-      "creative agency",
-      "dark mode",
-      "bold",
-      "motion"
     ]
   },
   {
@@ -8537,17 +7652,6 @@
     ]
   },
   {
-    "id": "suntory.co.jp",
-    "filename": "suntory.co.jp.jpeg",
-    "category": "japanese",
-    "region": "jp",
-    "format": "marketing",
-    "tags": [
-      "beverage",
-      "craft"
-    ]
-  },
-  {
     "id": "supabase.com",
     "filename": "supabase.com.jpeg",
     "category": "minimalist",
@@ -8674,18 +7778,6 @@
       "carbon accounting",
       "dark mode",
       "French"
-    ]
-  },
-  {
-    "id": "swisstypefaces.com",
-    "filename": "swisstypefaces.com.jpeg",
-    "category": "typographic",
-    "region": "eu",
-    "format": "marketing",
-    "tags": [
-      "type-foundry",
-      "swiss",
-      "contemporary"
     ]
   },
   {
@@ -9167,19 +8259,6 @@
     ]
   },
   {
-    "id": "tome.app",
-    "filename": "tome.app.jpeg",
-    "category": "minimalist",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "AI",
-      "presentations",
-      "dark mode",
-      "clean"
-    ]
-  },
-  {
     "id": "tooljet.com",
     "filename": "tooljet.com.jpeg",
     "category": "minimalist",
@@ -9226,18 +8305,6 @@
     "tags": [
       "scandinavian",
       "fashion"
-    ]
-  },
-  {
-    "id": "toyfight.co",
-    "filename": "toyfight.co.jpeg",
-    "category": "brutalist",
-    "region": "uk",
-    "format": "portfolio",
-    "tags": [
-      "british",
-      "branding",
-      "irreverent"
     ]
   },
   {
@@ -9354,19 +8421,6 @@
       "dark",
       "database",
       "edge"
-    ]
-  },
-  {
-    "id": "twentycrm.com",
-    "filename": "twentycrm.com.jpeg",
-    "category": "minimalist",
-    "region": "eu",
-    "format": "marketing",
-    "tags": [
-      "CRM",
-      "open source",
-      "dark mode",
-      "clean"
     ]
   },
   {
@@ -9834,17 +8888,6 @@
       "design",
       "architecture",
       "magazine"
-    ]
-  },
-  {
-    "id": "warp.dev",
-    "filename": "warp.dev.jpeg",
-    "category": "dark",
-    "region": "us",
-    "format": "marketing",
-    "tags": [
-      "developer",
-      "terminal"
     ]
   },
   {
