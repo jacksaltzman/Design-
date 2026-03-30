@@ -37,3 +37,5 @@ next-env.d.ts
 data/designs.db
 data/designs.db-shm
 data/designs.db-wal
+.claude/
+design-tinder/
